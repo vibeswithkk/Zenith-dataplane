@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 tracing = "0.1"
+lazy_static = "1.4"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

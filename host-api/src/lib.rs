@@ -6,30 +6,23 @@
 
 use std::sync::atomic::{AtomicU64, Ordering};
 
+// Host API modules
+pub mod random;
+pub mod logging;
+pub mod kv;
+pub mod http;
+pub mod fs;
+
+// Re-exports
+pub use random::RandomAPI;
+pub use logging::{LoggingAPI, LogLevel, LogEntry};
+pub use kv::KvAPI;
+pub use http::{HttpAPI, HttpMethod, HttpResponse};
+pub use fs::FsAPI;
+
 /// Global counters for host API usage tracking
 static HOST_CALL_COUNT: AtomicU64 = AtomicU64::new(0);
 static LOG_COUNT: AtomicU64 = AtomicU64::new(0);
-
-/// Log levels exposed to plugins
-#[repr(u32)]
-#[derive(Debug, Clone, Copy)]
-pub enum LogLevel {
-    Debug = 0,
-    Info = 1,
-    Warn = 2,
-    Error = 3,
-}
-
-impl From<u32> for LogLevel {
-    fn from(val: u32) -> Self {
-        match val {
-            0 => LogLevel::Debug,
-            1 => LogLevel::Info,
-            2 => LogLevel::Warn,
-            _ => LogLevel::Error,
-        }
-    }
-}
 
 /// Host API functions callable from WASM
 pub struct HostAPI;
@@ -55,6 +48,7 @@ impl HostAPI {
 
         let level: LogLevel = level.into();
         match level {
+            LogLevel::Trace => tracing::trace!("[Plugin] {}", message),
             LogLevel::Debug => tracing::debug!("[Plugin] {}", message),
             LogLevel::Info => tracing::info!("[Plugin] {}", message),
             LogLevel::Warn => tracing::warn!("[Plugin] {}", message),
