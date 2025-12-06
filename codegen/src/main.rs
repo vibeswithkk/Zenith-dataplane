@@ -65,15 +65,15 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Plugin { name, output, ptype } => {
             plugin::generate(&name, &output, &ptype)?;
-            println!("✅ Plugin '{}' generated at {:?}", name, output);
+            println!("[OK] Plugin '{}' generated at {:?}", name, output);
         }
         Commands::Ffi { lang, output } => {
             ffi::generate(&lang, &output)?;
-            println!("✅ FFI bindings for '{}' generated at {:?}", lang, output);
+            println!("[OK] FFI bindings for '{}' generated at {:?}", lang, output);
         }
         Commands::Schema { input, lang, output } => {
             schema::generate(&input, &lang, &output)?;
-            println!("✅ Schema code generated at {:?}", output);
+            println!("[OK] Schema code generated at {:?}", output);
         }
     }
 

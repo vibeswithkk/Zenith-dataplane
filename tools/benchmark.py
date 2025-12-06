@@ -41,9 +41,9 @@ def benchmark_ingest(client, batch_size=1000, num_batches=100):
     total_events = batch_size * num_batches
     throughput = total_events / elapsed
     
-    print(f"✅ Ingested {total_events:,} events in {elapsed:.2f}s")
-    print(f"📊 Throughput: {throughput:,.0f} events/sec")
-    print(f"⏱️  Latency: {(elapsed / num_batches * 1000):.2f} ms/batch")
+    print(f"[OK] Ingested {total_events:,} events in {elapsed:.2f}s")
+    print(f"[STATS] Throughput: {throughput:,.0f} events/sec")
+    print(f"[TIME] Latency: {(elapsed / num_batches * 1000):.2f} ms/batch")
     
     return throughput
 
@@ -54,7 +54,7 @@ def main():
     
     try:
         with ZenithClient(buffer_size=65536) as client:
-            print(f"✅ Engine initialized\n")
+            print(f"[OK] Engine initialized\n")
             
             # Run benchmarks
             throughput = benchmark_ingest(client, batch_size=1000, num_batches=1000)
@@ -64,7 +64,7 @@ def main():
             print(f"{'='*60}")
             
     except Exception as e:
-        print(f"❌ Benchmark failed: {e}")
+        print(f"[FAIL] Benchmark failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

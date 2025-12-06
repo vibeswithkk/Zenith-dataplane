@@ -1,0 +1,11 @@
+[package]
+name = "zenith-image-ops"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance image preprocessing operations for Zenith AI"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Minimal deps for WASM size

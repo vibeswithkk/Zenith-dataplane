@@ -1,0 +1,17 @@
+pyarrow>=14.0.0
+numpy>=1.24.0
+
+[all]
+torch>=2.0.0
+tensorflow>=2.14.0
+
+[dev]
+pytest>=7.0.0
+pytest-benchmark>=4.0.0
+maturin>=1.4.0
+
+[tensorflow]
+tensorflow>=2.14.0
+
+[torch]
+torch>=2.0.0

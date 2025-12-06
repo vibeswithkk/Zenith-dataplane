@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "cli",
+    "codegen",
+    "control-plane",
+    "core",
+    "dataplane",
+    "host-api",
+    "runtime",
+    "storage"
+]
+
+exclude = [
+    "plugins/simple_filter",
+    "plugins/ai_preprocessing/image_ops",
+    "plugins/ai_preprocessing/text_ops",
+    "sdk-python"
+]

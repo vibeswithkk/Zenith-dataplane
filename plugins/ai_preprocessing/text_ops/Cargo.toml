@@ -1,0 +1,11 @@
+[package]
+name = "zenith-text-ops"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance text preprocessing operations for Zenith AI (LLM training)"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Minimal deps for WASM size

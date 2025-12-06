@@ -21,16 +21,16 @@ try:
     # Initialize
     engine = lib.zenith_init(1024)
     if not engine:
-        print("❌ Failed to initialize engine")
+        print("[FAIL] Failed to initialize engine")
         sys.exit(1)
     
-    print("✅ Zenith engine initialized successfully")
+    print("[OK] Zenith engine initialized successfully")
     print(f"Engine handle: {hex(engine)}")
     
     # Cleanup
     lib.zenith_free(engine)
-    print("✅ Engine freed successfully")
+    print("[OK] Engine freed successfully")
     
 except Exception as e:
-    print(f"❌ Error: {e}")
+    print(f"[FAIL] Error: {e}")
     sys.exit(1)

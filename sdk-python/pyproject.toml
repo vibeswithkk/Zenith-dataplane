@@ -1,0 +1,73 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "zenith-ai"
+version = "0.1.0"
+description = "High-Performance Data Infrastructure for Machine Learning"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Zenith Contributors", email = "zenith@example.com" }
+]
+keywords = [
+    "machine-learning",
+    "deep-learning",
+    "pytorch",
+    "tensorflow",
+    "data-loading",
+    "high-performance",
+    "rust",
+    "gpu",
+    "training",
+    "ai"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pyarrow>=14.0.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+torch = ["torch>=2.0.0"]
+tensorflow = ["tensorflow>=2.14.0"]
+all = ["torch>=2.0.0", "tensorflow>=2.14.0"]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-benchmark>=4.0.0",
+    "maturin>=1.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vibeswithkk/Zenith-dataplane"
+Documentation = "https://github.com/vibeswithkk/Zenith-dataplane#documentation"
+Repository = "https://github.com/vibeswithkk/Zenith-dataplane"
+Issues = "https://github.com/vibeswithkk/Zenith-dataplane/issues"
+
+[tool.maturin]
+# Build options
+features = ["pyo3/extension-module"]
+# Python source location (hybrid layout)
+python-source = "."
+# Module name for the native extension
+module-name = "zenith._core"
+# Bindings type
+bindings = "pyo3"
+# Strip symbols for smaller binaries
+strip = true

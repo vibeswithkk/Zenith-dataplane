@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🧪 Zenith End-to-End Test Suite"
+echo "[TEST] Zenith End-to-End Test Suite"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Colors
@@ -78,9 +78,9 @@ echo -e "${RED}Failed: $fail_count${NC}"
 
 total=$((pass_count + fail_count))
 if [ $fail_count -eq 0 ]; then
-    echo -e "\n${GREEN}🎉 All tests passed!${NC}"
+    echo -e "\n${GREEN}[SUCCESS] All tests passed!${NC}"
     exit 0
 else
-    echo -e "\n${RED}❌ Some tests failed${NC}"
+    echo -e "\n${RED}[FAIL] Some tests failed${NC}"
     exit 1
 fi

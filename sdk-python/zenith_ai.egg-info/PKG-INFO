@@ -1,0 +1,127 @@
+Metadata-Version: 2.4
+Name: zenith-ai
+Version: 0.1.0
+Summary: High-Performance Data Infrastructure for Machine Learning
+Author-email: Zenith Contributors <zenith@example.com>
+License: Apache-2.0
+Project-URL: Homepage, https://github.com/vibeswithkk/Zenith-dataplane
+Project-URL: Documentation, https://github.com/vibeswithkk/Zenith-dataplane#documentation
+Project-URL: Repository, https://github.com/vibeswithkk/Zenith-dataplane
+Project-URL: Issues, https://github.com/vibeswithkk/Zenith-dataplane/issues
+Keywords: machine-learning,deep-learning,pytorch,tensorflow,data-loading,high-performance,rust,gpu,training,ai
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: MacOS
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Rust
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pyarrow>=14.0.0
+Requires-Dist: numpy>=1.24.0
+Provides-Extra: torch
+Requires-Dist: torch>=2.0.0; extra == "torch"
+Provides-Extra: tensorflow
+Requires-Dist: tensorflow>=2.14.0; extra == "tensorflow"
+Provides-Extra: all
+Requires-Dist: torch>=2.0.0; extra == "all"
+Requires-Dist: tensorflow>=2.14.0; extra == "all"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-benchmark>=4.0.0; extra == "dev"
+Requires-Dist: maturin>=1.4.0; extra == "dev"
+
+# Zenith AI Python SDK
+
+High-performance data loading and preprocessing for machine learning.
+
+## Installation
+
+```bash
+pip install zenith-ai
+```
+
+With framework support:
+```bash
+pip install zenith-ai[torch]      # PyTorch integration
+pip install zenith-ai[tensorflow] # TensorFlow integration
+pip install zenith-ai[all]        # All frameworks
+```
+
+## Quick Start
+
+### Basic Usage
+
+```python
+import zenith
+
+# Initialize the high-performance engine
+engine = zenith.Engine()
+
+# Load preprocessing plugin
+engine.load_plugin("image_resize.wasm")
+
+# Load and process data
+data = engine.load("path/to/dataset.parquet")
+```
+
+### PyTorch Integration
+
+```python
+import zenith.torch as zt
+
+loader = zt.DataLoader(
+    source="data/train.parquet",
+    batch_size=64,
+    shuffle=True,
+    preprocessing_plugin="normalize.wasm"
+)
+
+for batch in loader:
+    model.train_step(batch)
+```
+
+### TensorFlow Integration
+
+```python
+import zenith.tensorflow as ztf
+
+dataset = ztf.ZenithDataset("data/train")
+dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+
+model.fit(dataset, epochs=10)
+```
+
+## Features
+
+- **Ultra-fast data loading** (< 100µs latency)
+- **Zero-copy memory** via Apache Arrow
+- **WASM preprocessing** plugins
+- **Framework agnostic** (PyTorch, TensorFlow, JAX)
+
+## Development
+
+```bash
+# Clone repository
+git clone https://github.com/vibeswithkk/Zenith-dataplane.git
+cd Zenith-dataplane
+
+# Build Rust core
+cargo build --release
+
+# Install in development mode
+cd sdk-python
+pip install maturin
+maturin develop
+```
+
+## License
+
+Apache License 2.0

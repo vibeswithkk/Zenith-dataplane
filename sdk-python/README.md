@@ -1,33 +1,87 @@
-# Zenith Python SDK
+# Zenith AI Python SDK
 
-The official Python client for the Zenith Data Plane. This library provides a high-performance, zero-copy interface to the Rust core engine.
+High-performance data loading and preprocessing for machine learning.
 
 ## Installation
 
 ```bash
-# Requires the core library to be built first
-cd ../core && cargo build --release
-python3 -m pip install -r requirements.txt
+pip install zenith-ai
 ```
 
-## Usage
+With framework support:
+```bash
+pip install zenith-ai[torch]      # PyTorch integration
+pip install zenith-ai[tensorflow] # TensorFlow integration
+pip install zenith-ai[all]        # All frameworks
+```
+
+## Quick Start
+
+### Basic Usage
 
 ```python
-import pyarrow as pa
-from zenith_client import ZenithSDK
+import zenith
 
-# Initialize the engine (loading the shared library)
-sdk = ZenithSDK(lib_path="../core/target/release/libzenith_core.so")
+# Initialize the high-performance engine
+engine = zenith.Engine()
 
-# Create your Arrow data
-batch = pa.RecordBatch.from_arrays(
-    [pa.array([1, 2, 3])], 
-    names=['data']
-)
+# Load preprocessing plugin
+engine.load_plugin("image_resize.wasm")
 
-# Publish (Zero-Copy)
-sdk.publish(batch, source_id=1, seq_no=100)
+# Load and process data
+data = engine.load("path/to/dataset.parquet")
 ```
 
-## Architecture
-This SDK uses `ctypes` to load the compiled Rust library (`.so`) and `pyarrow.cffi` to export Arrow memory regions directly to the engine without serialization.
+### PyTorch Integration
+
+```python
+import zenith.torch as zt
+
+loader = zt.DataLoader(
+    source="data/train.parquet",
+    batch_size=64,
+    shuffle=True,
+    preprocessing_plugin="normalize.wasm"
+)
+
+for batch in loader:
+    model.train_step(batch)
+```
+
+### TensorFlow Integration
+
+```python
+import zenith.tensorflow as ztf
+
+dataset = ztf.ZenithDataset("data/train")
+dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+
+model.fit(dataset, epochs=10)
+```
+
+## Features
+
+- **Ultra-fast data loading** (< 100µs latency)
+- **Zero-copy memory** via Apache Arrow
+- **WASM preprocessing** plugins
+- **Framework agnostic** (PyTorch, TensorFlow, JAX)
+
+## Development
+
+```bash
+# Clone repository
+git clone https://github.com/vibeswithkk/Zenith-dataplane.git
+cd Zenith-dataplane
+
+# Build Rust core
+cargo build --release
+
+# Install in development mode
+cd sdk-python
+pip install maturin
+maturin develop
+```
+
+## License
+
+Apache License 2.0

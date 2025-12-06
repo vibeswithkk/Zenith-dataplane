@@ -31,7 +31,7 @@ def get_plugins():
 def print_status(status):
     """Print formatted status"""
     if not status:
-        print("❌ Engine not responding")
+        print("[FAIL] Engine not responding")
         return
     
     print("=" * 60)

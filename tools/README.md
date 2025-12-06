@@ -77,7 +77,7 @@ Plugins:      2
 
 **Benchmark:**
 ```
-✅ Ingested 1,000,000 events in 0.25s
-📊 Throughput: 4,000,000 events/sec
-⏱️  Latency: 0.25 ms/batch
+[OK] Ingested 1,000,000 events in 0.25s
+[STATS] Throughput: 4,000,000 events/sec
+[TIME] Latency: 0.25 ms/batch
 ```

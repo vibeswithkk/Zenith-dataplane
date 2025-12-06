@@ -26,18 +26,18 @@ if [ ! -f "$PLUGIN_DIR/Cargo.toml" ]; then
     exit 1
 fi
 
-echo "🔧 Building WASM plugin: $PLUGIN_DIR"
+echo "[BUILD] Building WASM plugin: $PLUGIN_DIR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Ensure target is installed
 if ! rustup target list | grep -q "wasm32-wasip1 (installed)"; then
-    echo "📦 Installing wasm32-wasip1 target..."
+    echo "[INSTALL] Installing wasm32-wasip1 target..."
     rustup target add wasm32-wasip1
 fi
 
 # Build
 cd "$PLUGIN_DIR"
-echo "🏗️  Compiling..."
+echo "[INFO] Compiling..."
 cargo build --target wasm32-wasip1 --release
 
 # Find output
@@ -46,12 +46,12 @@ WASM_FILE="target/wasm32-wasip1/release/${PLUGIN_NAME}.wasm"
 
 if [ -f "$WASM_FILE" ]; then
     SIZE=$(du -h "$WASM_FILE" | cut -f1)
-    echo "✅ Build successful!"
-    echo "📦 Output: $WASM_FILE ($SIZE)"
+    echo "[OK] Build successful!"
+    echo "[INSTALL] Output: $WASM_FILE ($SIZE)"
     echo ""
     echo "To use:"
     echo "  zenith-cli load-plugin $WASM_FILE"
 else
-    echo "❌ Build failed: Output file not found"
+    echo "[FAIL] Build failed: Output file not found"
     exit 1
 fi

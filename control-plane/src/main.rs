@@ -19,6 +19,7 @@ struct AppState {
     nodes: Arc<Mutex<HashMap<String, DataNode>>>,
     plugins: Arc<Mutex<HashMap<String, Plugin>>>,
     deployments: Arc<Mutex<HashMap<String, Deployment>>>,
+    start_time: std::time::Instant,
 }
 
 impl AppState {
@@ -27,6 +28,7 @@ impl AppState {
             nodes: Arc::new(Mutex::new(HashMap::new())),
             plugins: Arc::new(Mutex::new(HashMap::new())),
             deployments: Arc::new(Mutex::new(HashMap::new())),
+            start_time: std::time::Instant::now(),
         }
     }
 }
@@ -64,7 +66,7 @@ async fn main() {
         .with_state(state);
 
     let addr = "0.0.0.0:9090";
-    info!("🚀 Zenith Control Plane starting on {}", addr);
+    info!("[START] Zenith Control Plane starting on {}", addr);
 
     axum::Server::bind(&addr.parse().unwrap())
         .serve(app.into_make_service())
@@ -85,12 +87,13 @@ async fn get_info(State(state): State<AppState>) -> Json<SystemInfo> {
     let nodes = state.nodes.lock().unwrap();
     let plugins = state.plugins.lock().unwrap();
     let deployments = state.deployments.lock().unwrap();
+    let uptime = state.start_time.elapsed().as_secs();
 
     Json(SystemInfo {
         node_count: nodes.len(),
         plugin_count: plugins.len(),
         deployment_count: deployments.len(),
-        uptime_seconds: 0, // TODO: Track actual uptime
+        uptime_seconds: uptime,
     })
 }
 
