@@ -1,0 +1,42 @@
+// Example Plugin using Host API
+// This demonstrates how WASM plugins can call back to the Zenith host
+
+// Host function declarations (provided by Zenith runtime)
+extern "C" {
+    fn zenith_host_log(level: u32, message_ptr: *const u8, message_len: usize) -> i32;
+    fn zenith_host_get_timestamp_ns() -> u64;
+    fn zenith_host_get_random_u64() -> u64;
+}
+
+// Helper function to log from plugin
+fn plugin_log(level: u32, message: &str) {
+    unsafe {
+        zenith_host_log(level, message.as_ptr(), message.len());
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn on_event(source_id: u32, seq_no: u64) -> i32 {
+    // Log plugin execution
+    plugin_log(1, "Plugin executing on_event");
+    
+    // Get current timestamp from host
+    let timestamp = unsafe { zenith_host_get_timestamp_ns() };
+    
+    // Simple filtering logic with randomness
+    let random = unsafe { zenith_host_get_random_u64() };
+    
+    // Log the values
+    let msg = format!("Event: source={}, seq={}, ts={}, rand={}", 
+                     source_id, seq_no, timestamp, random % 100);
+    plugin_log(1, &msg);
+    
+    // Accept event
+    1
+}
+
+#[no_mangle]
+pub extern "C" fn init() -> i32 {
+    plugin_log(1, "Plugin initialized with host API access");
+    0
+}

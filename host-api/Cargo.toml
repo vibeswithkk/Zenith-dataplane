@@ -1,0 +1,10 @@
+[package]
+name = "zenith-host-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tracing = "0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
