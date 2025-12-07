@@ -81,7 +81,7 @@ impl PaddedAtomicUsize {
 /// # Example
 ///
 /// ```
-/// use zenith_runtime_cpu::buffer::SpscRingBuffer;
+/// use zenith_runtime_cpu::buffer::{SpscRingBuffer, RingBuffer};
 ///
 /// let buffer = SpscRingBuffer::<u64>::new(1024);
 ///

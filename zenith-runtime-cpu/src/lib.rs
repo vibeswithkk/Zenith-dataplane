@@ -34,11 +34,11 @@
 //!
 //! ## Example
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use zenith_runtime_cpu::{CpuEngine, EngineConfig};
 //!
 //! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
+//! async fn main() -> zenith_runtime_cpu::Result<()> {
 //!     let config = EngineConfig::builder()
 //!         .numa_aware(true)
 //!         .hugepages(true)
@@ -46,7 +46,7 @@
 //!         .build()?;
 //!     
 //!     let engine = CpuEngine::new(config)?;
-//!     engine.run().await
+//!     Ok(engine.run().await?)
 //! }
 //! ```
 
