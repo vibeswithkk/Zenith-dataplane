@@ -1,20 +1,58 @@
-//! NUMA allocator benchmarks
+//! NUMA Allocator Benchmarks
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use zenith_runtime_cpu::allocator::{AllocatorConfig, NumaAllocator};
-use std::alloc::Layout;
+use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
 
-fn benchmark_allocate(c: &mut Criterion) {
-    let allocator = NumaAllocator::with_defaults();
-    let layout = Layout::from_size_align(1024, 8).unwrap();
+fn bench_numa_topology(c: &mut Criterion) {
+    use zenith_runtime_cpu::numa::NumaTopology;
     
-    c.bench_function("numa_allocate_1kb", |b| {
-        b.iter(|| unsafe {
-            let ptr = allocator.allocate(black_box(layout)).unwrap();
-            allocator.deallocate(ptr, layout);
-        })
+    let mut group = c.benchmark_group("numa");
+    
+    group.bench_function("discover", |b| {
+        b.iter(|| {
+            NumaTopology::discover()
+        });
     });
+    
+    group.bench_function("num_cpus", |b| {
+        let topology = NumaTopology::discover().unwrap();
+        b.iter(|| {
+            topology.num_cpus()
+        });
+    });
+    
+    group.finish();
 }
 
-criterion_group!(benches, benchmark_allocate);
+fn bench_allocator(c: &mut Criterion) {
+    use zenith_runtime_cpu::allocator::NumaAllocator;
+    
+    let mut group = c.benchmark_group("allocator");
+    
+    for size in [4096, 65536, 1048576].iter() {
+        group.throughput(Throughput::Bytes(*size as u64));
+        
+        group.bench_with_input(
+            BenchmarkId::new("allocate_free", size),
+            size,
+            |b, &size| {
+                let allocator = NumaAllocator::new();
+                
+                b.iter(|| {
+                    if let Ok(ptr) = allocator.allocate(size, 64) {
+                        unsafe { allocator.deallocate(ptr, size, 64) };
+                    }
+                });
+            },
+        );
+    }
+    
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    bench_numa_topology,
+    bench_allocator,
+);
+
 criterion_main!(benches);

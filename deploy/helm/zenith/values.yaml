@@ -1,0 +1,190 @@
+# Zenith Helm Chart Values
+# Default configuration for Zenith AI Infrastructure
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Scheduler component
+scheduler:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    repository: zenith/scheduler
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    grpcPort: 50051
+    httpPort: 8080
+    metricsPort: 9090
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  config:
+    heartbeatTimeoutSecs: 60
+    schedulingIntervalMs: 100
+    maxJobsPerCycle: 100
+    enableBackfill: true
+    enableTopologyAware: true
+
+# Node Agent (DaemonSet)
+nodeAgent:
+  enabled: true
+  
+  image:
+    repository: zenith/node-agent
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Mount host paths for GPU discovery
+  hostPaths:
+    - /sys/class/drm
+    - /dev/nvidia0
+    - /dev/nvidiactl
+  
+  # GPU support
+  gpu:
+    enabled: true
+    # nvidia.com/gpu resource name
+    resourceName: nvidia.com/gpu
+
+# CPU Runtime
+cpuRuntime:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    repository: zenith/cpu-runtime
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8081
+    metricsPort: 9091
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+  
+  # NUMA configuration
+  numa:
+    enabled: true
+    policy: "single-numa-node"
+  
+  # Hugepages
+  hugepages:
+    enabled: false
+    size: "2Mi"
+    amount: "1Gi"
+
+# GPU Runtime
+gpuRuntime:
+  enabled: false  # Enable if GPUs available
+  replicaCount: 1
+  
+  image:
+    repository: zenith/gpu-runtime
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+      nvidia.com/gpu: 1
+    limits:
+      cpu: 2
+      memory: 8Gi
+      nvidia.com/gpu: 1
+  
+  # NCCL configuration
+  nccl:
+    enabled: true
+    networkInterface: "eth0"
+    buffSize: "4m"
+
+# Observability
+monitoring:
+  enabled: true
+  
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 15s
+      scrapeTimeout: 10s
+  
+  grafana:
+    enabled: false
+    dashboards:
+      enabled: true
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+# Security
+security:
+  podSecurityContext:
+    fsGroup: 1000
+  
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  
+  # Network policies
+  networkPolicy:
+    enabled: false
+
+# Ingress
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: zenith.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}

@@ -55,8 +55,10 @@
 
 pub mod allocator;
 pub mod buffer;
+pub mod circuit_breaker;
 pub mod config;
 pub mod engine;
+pub mod health;
 pub mod io;
 pub mod metrics;
 pub mod numa;

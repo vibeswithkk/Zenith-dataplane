@@ -1,0 +1,114 @@
+{{- if .Values.scheduler.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zenith.fullname" . }}-scheduler
+  labels:
+    {{- include "zenith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+spec:
+  replicas: {{ .Values.scheduler.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "zenith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      labels:
+        {{- include "zenith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: scheduler
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "zenith.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      containers:
+        - name: scheduler
+          securityContext:
+            {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag }}"
+          imagePullPolicy: {{ .Values.scheduler.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.scheduler.service.grpcPort }}
+              protocol: TCP
+            - name: http
+              containerPort: {{ .Values.scheduler.service.httpPort }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.scheduler.service.metricsPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}
+          env:
+            - name: RUST_LOG
+              value: "info"
+            - name: ZENITH_HEARTBEAT_TIMEOUT
+              value: "{{ .Values.scheduler.config.heartbeatTimeoutSecs }}"
+            - name: ZENITH_SCHEDULING_INTERVAL_MS
+              value: "{{ .Values.scheduler.config.schedulingIntervalMs }}"
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/zenith
+          {{- end }}
+      {{- with .Values.scheduler.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "zenith.fullname" . }}-scheduler
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zenith.fullname" . }}-scheduler
+  labels:
+    {{- include "zenith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+spec:
+  type: {{ .Values.scheduler.service.type }}
+  ports:
+    - port: {{ .Values.scheduler.service.grpcPort }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+    - port: {{ .Values.scheduler.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.scheduler.service.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "zenith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+{{- end }}

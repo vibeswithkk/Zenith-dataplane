@@ -1,0 +1,18 @@
+apiVersion: v2
+name: zenith
+description: Zenith AI Infrastructure - High-Performance Data Infrastructure for ML
+type: application
+version: 1.0.0
+appVersion: "0.1.0"
+maintainers:
+  - name: Wahyu Ardiansyah
+    email: wahyu@zenith.ai
+keywords:
+  - ai
+  - ml
+  - data-pipeline
+  - gpu
+  - kubernetes
+home: https://github.com/vibeswithkk/Zenith-dataplane
+sources:
+  - https://github.com/vibeswithkk/Zenith-dataplane

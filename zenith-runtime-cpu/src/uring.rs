@@ -2,7 +2,7 @@
 //!
 //! Production-ready async I/O using Linux io_uring.
 
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicU64, Ordering};

@@ -1,0 +1,398 @@
+openapi: 3.0.3
+info:
+  title: Zenith Scheduler API
+  description: |
+    RESTful API for Zenith AI Infrastructure Job Scheduler.
+    
+    This API provides endpoints for:
+    - Job submission and management
+    - Cluster status monitoring
+    - Node management
+    
+    ## Authentication
+    All endpoints require Bearer token authentication in production.
+    
+    ## Rate Limiting
+    API requests are rate-limited to 1000 requests per minute per client.
+  version: 1.0.0
+  contact:
+    name: Wahyu Ardiansyah
+    email: wahyu@zenith.ai
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: https://api.zenith.ai
+    description: Production
+
+tags:
+  - name: Jobs
+    description: Job management operations
+  - name: Cluster
+    description: Cluster status and configuration
+  - name: Nodes
+    description: Node management operations
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /api/v1/jobs:
+    post:
+      tags:
+        - Jobs
+      summary: Submit a new job
+      description: Submit a job to the scheduler queue
+      operationId: submitJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitJobRequest'
+            example:
+              name: "training-job-001"
+              user_id: "user123"
+              project_id: "project456"
+              command: "python"
+              arguments: ["train.py", "--epochs", "100"]
+              gpu_count: 4
+              cpu_cores: 8
+              memory_mb: 32768
+              priority: 50
+              gang_schedule: true
+      responses:
+        '201':
+          description: Job submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+    
+    get:
+      tags:
+        - Jobs
+      summary: List all jobs
+      description: Get a list of all jobs with optional filtering
+      operationId: listJobs
+      parameters:
+        - name: state
+          in: query
+          description: Filter by job state
+          schema:
+            type: string
+            enum: [pending, queued, scheduled, running, completed, failed, cancelled]
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobResponse'
+
+  /api/v1/jobs/{job_id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get job details
+      description: Get detailed information about a specific job
+      operationId: getJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '404':
+          description: Job not found
+    
+    delete:
+      tags:
+        - Jobs
+      summary: Cancel a job
+      description: Cancel a pending, queued, or running job
+      operationId: cancelJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Job not found
+        '409':
+          description: Job cannot be cancelled (already completed/failed)
+
+  /api/v1/cluster/status:
+    get:
+      tags:
+        - Cluster
+      summary: Get cluster status
+      description: Get overall cluster status including node and GPU counts
+      operationId: getClusterStatus
+      responses:
+        '200':
+          description: Cluster status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterStatus'
+
+  /api/v1/nodes:
+    get:
+      tags:
+        - Nodes
+      summary: List all nodes
+      description: Get a list of all registered compute nodes
+      operationId: listNodes
+      responses:
+        '200':
+          description: List of nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NodeResponse'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Simple health check endpoint for load balancer
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+  /ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: Detailed readiness check for Kubernetes
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+
+components:
+  schemas:
+    SubmitJobRequest:
+      type: object
+      required:
+        - name
+        - user_id
+        - project_id
+        - command
+      properties:
+        name:
+          type: string
+          description: Human-readable job name
+          example: "training-job-001"
+        user_id:
+          type: string
+          description: User identifier
+        project_id:
+          type: string
+          description: Project identifier
+        command:
+          type: string
+          description: Command to execute
+        arguments:
+          type: array
+          items:
+            type: string
+          description: Command arguments
+        environment:
+          type: object
+          additionalProperties:
+            type: string
+          description: Environment variables
+        working_directory:
+          type: string
+          default: "/app"
+        gpu_count:
+          type: integer
+          minimum: 0
+          default: 0
+        cpu_cores:
+          type: integer
+          minimum: 1
+          default: 1
+        memory_mb:
+          type: integer
+          minimum: 256
+          default: 4096
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 50
+        gang_schedule:
+          type: boolean
+          default: true
+          description: Whether all resources must be allocated together
+
+    JobResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        state:
+          type: string
+          enum: [Pending, Queued, Scheduled, Running, Completed, Failed, Cancelled]
+        user_id:
+          type: string
+        project_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        allocated_nodes:
+          type: array
+          items:
+            type: string
+        gpu_count:
+          type: integer
+
+    ClusterStatus:
+      type: object
+      properties:
+        total_nodes:
+          type: integer
+        healthy_nodes:
+          type: integer
+        total_gpus:
+          type: integer
+        available_gpus:
+          type: integer
+        running_jobs:
+          type: integer
+        queued_jobs:
+          type: integer
+
+    NodeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        health:
+          type: string
+        total_gpus:
+          type: integer
+        available_gpus:
+          type: integer
+        running_jobs:
+          type: integer
+
+    ReadinessResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              component:
+                type: string
+              status:
+                type: string
+              message:
+                type: string
+        uptime_secs:
+          type: integer
+        version:
+          type: string
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
