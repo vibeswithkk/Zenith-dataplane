@@ -10,6 +10,7 @@ description = "Ultra-low-latency CPU runtime with NUMA awareness, io_uring, and 
 [features]
 default = ["io_uring"]
 io_uring = ["tokio-uring"]
+onnx = ["ort"]  # ONNX Runtime integration (FREE!)
 dpdk = []  # Future: DPDK integration
 rdma = []  # Future: RDMA integration
 
@@ -48,6 +49,9 @@ metrics = "0.24"
 
 # HTTP server for metrics
 axum.workspace = true
+
+# ONNX Runtime (optional, FREE!)
+ort = { version = "2.0.0-rc.10", optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
