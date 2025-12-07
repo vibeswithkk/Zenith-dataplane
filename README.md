@@ -11,7 +11,7 @@
 
 ---
 
-## 🎯 Vision
+##  Vision
 
 Zenith is a comprehensive infrastructure ecosystem designed to accelerate AI/ML training and inference at scale. It provides:
 
@@ -23,7 +23,7 @@ Zenith is a comprehensive infrastructure ecosystem designed to accelerate AI/ML 
 
 ---
 
-## 📊 Performance
+##  Performance
 
 | Metric | Standard | Zenith | Improvement |
 |--------|----------|--------|-------------|
@@ -34,7 +34,7 @@ Zenith is a comprehensive infrastructure ecosystem designed to accelerate AI/ML 
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -62,7 +62,7 @@ Zenith is a comprehensive infrastructure ecosystem designed to accelerate AI/ML 
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Installation
 
@@ -116,7 +116,7 @@ model.fit(dataset, epochs=10)
 
 ---
 
-## 📦 Repository Structure
+##  Repository Structure
 
 ```
 zenith/
@@ -162,7 +162,7 @@ zenith/
 
 ---
 
-## 🛠️ Development
+##  Development
 
 ### Prerequisites
 
@@ -229,16 +229,16 @@ This project is built upon research and industry best practices:
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 **Wahyu Ardiansyah** 🇮🇩
 
 - GitHub: [@vibeswithkk](https://github.com/vibeswithkk)
-- Made with ❤️ in Indonesia
+- Made with  in Indonesia
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
