@@ -1,6 +1,6 @@
 ---
 title: Zenith AI
-emoji: 🚀
+emoji: ""
 colorFrom: blue
 colorTo: purple
 sdk: gradio
@@ -18,13 +18,13 @@ tags:
   - dataloader
 ---
 
-# 🚀 Zenith AI
+# Zenith AI
 
 > **"Stop Starving Your GPUs. Feed Them with Zenith."**
 
 **Zenith AI** is a high-performance data loading and preprocessing library designed to accelerate AI/ML training pipelines.
 
-## ⚡ Performance
+## Performance
 
 | Metric | Value |
 |--------|-------|
@@ -32,13 +32,13 @@ tags:
 | **Latency** | < 100µs |
 | **Speedup** | 10-120x vs standard loaders |
 
-## 📦 Installation
+## Installation
 
 ```bash
 pip install zenith-ai
 ```
 
-## 🔥 Quick Start
+## Quick Start
 
 ### PyTorch
 ```python
@@ -63,21 +63,21 @@ dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 model.fit(dataset)
 ```
 
-## 🛠️ Features
+## Features
 
 - **Rust Core**: Native performance without Python GIL
 - **Zero-Copy**: Apache Arrow integration
 - **WASM Plugins**: Secure preprocessing
 - **Framework Support**: PyTorch, TensorFlow, JAX
 
-## 🔗 Links
+## Links
 
 - [GitHub](https://github.com/vibeswithkk/Zenith-dataplane)
 - [PyPI](https://pypi.org/project/zenith-ai/)
 - [Documentation](https://github.com/vibeswithkk/Zenith-dataplane#documentation)
 
-## 👨‍💻 Author
+## Author
 
-**Wahyu Ardiansyah** 🇮🇩
+**Wahyu Ardiansyah** (Indonesia)
 
-Made with ❤️ in Indonesia
+Made with passion in Indonesia

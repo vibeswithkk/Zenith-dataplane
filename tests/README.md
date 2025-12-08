@@ -19,13 +19,13 @@ tests/
 ```
 
 This runs:
-1. ✅ Core library build
-2. ✅ WASM plugin build
-3. ✅ Python SDK integration tests
-4. ✅ Storage layer tests
-5. ✅ Runtime tests
-6. ✅ Host API tests
-7. ✅ Demo application
+1. [OK] Core library build
+2. [OK] WASM plugin build
+3. [OK] Python SDK integration tests
+4. [OK] Storage layer tests
+5. [OK] Runtime tests
+6. [OK] Host API tests
+7. [OK] Demo application
 
 ### Individual Test Suites
 

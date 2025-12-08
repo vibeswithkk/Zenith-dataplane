@@ -3,7 +3,7 @@
 This document lists all external dependencies required for Zenith's advanced features, 
 confirming that **everything is available for FREE**.
 
-## 🆓 Core Dependencies (All FREE)
+## Core Dependencies (All FREE)
 
 | Dependency | License | Cost | Purpose |
 |------------|---------|------|---------|
@@ -13,7 +13,7 @@ confirming that **everything is available for FREE**.
 | Serde | MIT/Apache 2.0 | **FREE** | Serialization |
 | io-uring | MIT | **FREE** | Async I/O |
 
-## 🆓 ML Acceleration Dependencies (All FREE)
+## ML Acceleration Dependencies (All FREE)
 
 ### ONNX Runtime
 
@@ -79,7 +79,7 @@ sudo apt install nvidia-cuda-toolkit
 | **Developer** | NVIDIA |
 | **Download** | https://developer.nvidia.com/cudnn |
 
-## 💰 Hardware Costs (Only Expense)
+## Hardware Costs (Only Expense)
 
 The only costs are for hardware if you want GPU acceleration:
 
@@ -93,7 +93,7 @@ The only costs are for hardware if you want GPU acceleration:
 
 **Note:** CPU-only mode is 100% FREE with no hardware requirements.
 
-## 🚀 Cloud Alternatives (Pay-per-Use)
+## Cloud Alternatives (Pay-per-Use)
 
 If you don't want to buy hardware, use cloud GPU instances:
 
@@ -105,7 +105,7 @@ If you don't want to buy hardware, use cloud GPU instances:
 | Lambda Labs | A100 | ~$1.10/hour |
 | AWS | A100 | ~$3.00/hour |
 
-## 📋 Summary
+## Summary
 
 | Category | Status |
 |----------|--------|
@@ -121,7 +121,7 @@ If you don't want to buy hardware, use cloud GPU instances:
 
 ---
 
-## ✅ Conclusion
+## Conclusion
 
 **All software used by Zenith is 100% FREE and open source.**
 

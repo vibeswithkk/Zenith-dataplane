@@ -1,18 +1,18 @@
-# 🚀 Zenith AI v0.1.0 - Initial Release
+# Zenith AI v0.1.0 - Initial Release
 
 > **"Stop Starving Your GPUs. Feed Them with Zenith."**
 
 We're excited to announce the first public release of **Zenith AI** - a high-performance data loading and preprocessing library designed to accelerate AI/ML training pipelines.
 
-## ✨ Highlights
+## Highlights
 
-- **🔥 Blazing Fast**: 6,000,000+ events/second throughput
-- **⚡ Ultra-Low Latency**: < 100µs data loading
-- **🦀 Rust-Powered**: Native performance with Python simplicity
-- **🔌 PyTorch & TensorFlow**: First-class framework integration
-- **🧩 WASM Plugins**: Secure, sandboxed preprocessing
+- **Blazing Fast**: 6,000,000+ events/second throughput
+- **Ultra-Low Latency**: < 100µs data loading
+- **Rust-Powered**: Native performance with Python simplicity
+- **PyTorch & TensorFlow**: First-class framework integration
+- **WASM Plugins**: Secure, sandboxed preprocessing
 
-## 📦 Installation
+## Installation
 
 ```bash
 pip install zenith-ai
@@ -25,7 +25,7 @@ pip install zenith-ai[tensorflow] # TensorFlow
 pip install zenith-ai[all]        # Everything
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### PyTorch
 ```python
@@ -50,7 +50,7 @@ dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 model.fit(dataset, epochs=10)
 ```
 
-## 📊 Performance
+## Performance
 
 | Scenario | Standard PyTorch | Zenith | Speedup |
 |----------|------------------|--------|---------|
@@ -58,7 +58,7 @@ model.fit(dataset, epochs=10)
 | Text Tokenization (10M docs) | 12 min | 2 min | **6x** |
 | Real-time Inference | 50K events/s | 6M events/s | **120x** |
 
-## 🆕 What's New
+## What's New
 
 ### Core Features
 - Native Rust engine with PyO3 bindings
@@ -75,27 +75,27 @@ model.fit(dataset, epochs=10)
 - Image operations: resize, normalize, augment
 - Text operations: tokenize, clean, pad
 
-## 📚 Documentation
+## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [PyTorch Guide](docs/PYTORCH_GUIDE.md)
 - [Plugin Development](docs/PLUGIN_GUIDE.md)
 - [API Reference](docs/API_SPEC.md)
 
-## 🔧 Requirements
+## Requirements
 
 - Python 3.10+
 - Linux x86_64 (macOS/Windows coming soon)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-Built with ❤️ using:
+Built with passion using:
 - [Rust](https://www.rust-lang.org/) - Performance
 - [PyO3](https://pyo3.rs/) - Python bindings
 - [Apache Arrow](https://arrow.apache.org/) - Zero-copy memory
 - [Wasmtime](https://wasmtime.dev/) - WASM runtime
 
-## 📄 License
+## License
 
 Apache License 2.0
 

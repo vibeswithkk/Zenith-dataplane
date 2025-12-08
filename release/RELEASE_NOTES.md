@@ -1,10 +1,10 @@
 # Zenith v0.1.1 Release Notes
 
-## 🎉 Zenith v0.1.1 - Phase 1-3 Complete
+## Zenith v0.1.1 - Phase 1-3 Complete
 
 We're excited to announce Zenith v0.1.1, featuring major improvements across all core components!
 
-### 🚀 Highlights
+### Highlights
 
 - **43M+ ops/sec** ring buffer performance (industry-leading)
 - **Full io_uring** async I/O implementation
@@ -14,7 +14,7 @@ We're excited to announce Zenith v0.1.1, featuring major improvements across all
 
 ---
 
-## ⬇️ Download
+## Download
 
 | Platform | Architecture | File | Size |
 |----------|--------------|------|------|
@@ -32,33 +32,33 @@ tar -xzvf zenith-v0.1.1-linux-x86_64.tar.gz
 
 ---
 
-## 🆕 What's New
+## What's New
 
 ### Phase 1: Core Runtime Enhancements
 
-- ✨ **Prometheus Metrics Export** - `/metrics` and `/health` endpoints
-- ✨ **Scheduler REST API** - Full CRUD for jobs
-- ✨ **Scheduler gRPC API** - High-performance RPC
-- ✨ **Node Agent** - GPU discovery and heartbeats
+- **NEW** **Prometheus Metrics Export** - `/metrics` and `/health` endpoints
+- **NEW** **Scheduler REST API** - Full CRUD for jobs
+- **NEW** **Scheduler gRPC API** - High-performance RPC
+- **NEW** **Node Agent** - GPU discovery and heartbeats
 
 ### Phase 2: Advanced Implementation
 
-- ✨ **io_uring Engine** - Linux kernel async I/O
-- ✨ **Memory Pool** - Zero-copy slab allocation
-- ✨ **NVML Manager** - GPU monitoring
-- ✨ **State Persistence** - Durable job storage
+- **NEW** **io_uring Engine** - Linux kernel async I/O
+- **NEW** **Memory Pool** - Zero-copy slab allocation
+- **NEW** **NVML Manager** - GPU monitoring
+- **NEW** **State Persistence** - Durable job storage
 
 ### Phase 3: Production Hardening
 
-- ✨ **Health Checks** - K8s liveness/readiness probes
-- ✨ **Circuit Breaker** - Fault tolerance pattern
-- ✨ **Helm Chart** - Complete Kubernetes deployment
-- ✨ **CI/CD Pipeline** - GitHub Actions workflow
-- ✨ **OpenAPI Spec** - REST API documentation
+- **NEW** **Health Checks** - K8s liveness/readiness probes
+- **NEW** **Circuit Breaker** - Fault tolerance pattern
+- **NEW** **Helm Chart** - Complete Kubernetes deployment
+- **NEW** **CI/CD Pipeline** - GitHub Actions workflow
+- **NEW** **OpenAPI Spec** - REST API documentation
 
 ---
 
-## 📈 Performance Benchmarks
+## Performance Benchmarks
 
 | Component | Metric | Result |
 |-----------|--------|--------|
@@ -70,12 +70,12 @@ tar -xzvf zenith-v0.1.1-linux-x86_64.tar.gz
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```
-Unit Tests:       41 passed ✅
-Integration Tests: 6 passed ✅
-Doc Tests:        2 passed ✅
+Unit Tests:       41 passed [OK]
+Integration Tests: 6 passed [OK]
+Doc Tests:        2 passed [OK]
 ```
 
 ### New Test Coverage
@@ -88,7 +88,7 @@ Doc Tests:        2 passed ✅
 
 ---
 
-## 📦 Installation Methods
+## Installation Methods
 
 ### From Binary (Recommended)
 
@@ -121,7 +121,7 @@ docker run -p 8080:8080 -p 50051:50051 zenith/scheduler
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 ### Minimum
 - Linux kernel 5.1+ (for io_uring)
@@ -134,22 +134,22 @@ docker run -p 8080:8080 -p 50051:50051 zenith/scheduler
 
 ---
 
-## 🔗 Links
+## Links
 
-- 📚 [Documentation](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/README.md)
-- 🗺️ [Roadmap](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/ROADMAP.md)
-- 📝 [Changelog](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/CHANGELOG.md)
-- 🐛 [Issues](https://github.com/vibeswithkk/Zenith-dataplane/issues)
+- [Documentation](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/README.md)
+- [Roadmap](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/ROADMAP.md)
+- [Changelog](https://github.com/vibeswithkk/Zenith-dataplane/blob/main/CHANGELOG.md)
+- [Issues](https://github.com/vibeswithkk/Zenith-dataplane/issues)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! See our [roadmap](ROADMAP.md) for priority areas.
 
 ---
 
-## 💰 Sponsorship
+## Sponsorship
 
 Interested in sponsoring development? See [ROADMAP.md](ROADMAP.md#-sponsorship-opportunities) for opportunities.
 

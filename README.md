@@ -229,16 +229,16 @@ This project is built upon research and industry best practices:
 
 ---
 
-##  Author
+## Author
 
-**Wahyu Ardiansyah** 🇮🇩
+**Wahyu Ardiansyah** (Indonesia)
 
 - GitHub: [@vibeswithkk](https://github.com/vibeswithkk)
-- Made with  in Indonesia
+- Made with passion in Indonesia
 
 ---
 
-##  License
+## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
@@ -248,12 +248,12 @@ Copyright 2025 Wahyu Ardiansyah and Zenith AI Contributors
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-## ⭐ Star History
+## Star History
 
 If you find Zenith useful, please consider giving it a star on GitHub!

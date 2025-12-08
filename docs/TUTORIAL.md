@@ -29,17 +29,17 @@ Zenith adalah ekosistem infrastruktur performa tinggi yang dirancang untuk mempe
 
 ```
 Tanpa Zenith:
-CPU (Python) ──slow──> GPU
-                       ↓
-                   GPU: 😴 "Menunggu data..."
-                       ↓
+CPU (Python) --slow--> GPU
+                       |
+                   GPU: [IDLE] "Menunggu data..."
+                       |
                    Utilisasi: 60%
 
 Dengan Zenith:
-Zenith (Rust) ──fast──> GPU
-                        ↓
-                    GPU: 🔥 "Data terus mengalir!"
-                        ↓
+Zenith (Rust) --fast--> GPU
+                        |
+                    GPU: [ACTIVE] "Data terus mengalir!"
+                        |
                     Utilisasi: 95%+
 ```
 
@@ -467,5 +467,5 @@ Selamat! Anda sekarang memahami cara kerja Zenith dan cara menggunakannya. Untuk
 
 ---
 
-**Dibuat oleh:** Wahyu Ardiansyah 🇮🇩  
+**Dibuat oleh:** Wahyu Ardiansyah (Indonesia)  
 **License:** Apache 2.0

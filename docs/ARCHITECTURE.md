@@ -23,10 +23,10 @@ Zenith is a high-performance infrastructure ecosystem designed to accelerate AI/
 
 | Component   | Metric          | Target      | Achieved |
 |-------------|-----------------|-------------|----------|
-| CPU Engine  | Latency P99     | < 100µs     | ✓        |
-| Ring Buffer | Throughput      | > 10M ops/s | ✓        |
-| Scheduler   | Decision Time   | < 10ms      | ✓        |
-| GPU Runtime | GPU Util        | > 95%       | ✓        |
+| CPU Engine  | Latency P99     | < 100µs     | [OK]     |
+| Ring Buffer | Throughput      | > 10M ops/s | [OK]     |
+| Scheduler   | Decision Time   | < 10ms      | [OK]     |
+| GPU Runtime | GPU Util        | > 95%       | [OK]     |
 
 ---
 

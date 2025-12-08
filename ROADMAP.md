@@ -14,7 +14,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Current Status](#-current-status)
 - [What's Working (Production Ready)](#-whats-working-production-ready)
@@ -28,7 +28,7 @@
 
 ---
 
-## 🎯 Current Status
+## Current Status
 
 | Metric | Value |
 |--------|-------|
@@ -40,7 +40,7 @@
 
 ---
 
-## ✅ What's Working (Production Ready)
+## What's Working (Production Ready)
 
 These components have been thoroughly tested and are ready for production use:
 
@@ -48,34 +48,34 @@ These components have been thoroughly tested and are ready for production use:
 
 | Component | Description | Performance | Tests |
 |-----------|-------------|-------------|-------|
-| **SPSC Ring Buffer** | Lock-free single-producer single-consumer queue | **43M+ ops/sec** | ✅ 4 tests |
-| **MPMC Ring Buffer** | Multi-producer multi-consumer queue | High throughput | ✅ Tested |
-| **Memory Pool** | Slab-based memory allocation | Zero leaks | ✅ 4 tests |
-| **NUMA Allocator** | NUMA-aware memory allocation | Optimized | ✅ 2 tests |
-| **NUMA Topology Discovery** | Automatic system topology detection | < 1ms | ✅ 2 tests |
-| **Telemetry Collector** | Real-time metrics collection | 10K events in 191µs | ✅ Tested |
-| **Thread Pool** | CPU-pinned thread management | Per-core affinity | ✅ 2 tests |
+| **SPSC Ring Buffer** | Lock-free single-producer single-consumer queue | **43M+ ops/sec** | [OK] 4 tests |
+| **MPMC Ring Buffer** | Multi-producer multi-consumer queue | High throughput | [OK] Tested |
+| **Memory Pool** | Slab-based memory allocation | Zero leaks | [OK] 4 tests |
+| **NUMA Allocator** | NUMA-aware memory allocation | Optimized | [OK] 2 tests |
+| **NUMA Topology Discovery** | Automatic system topology detection | < 1ms | [OK] 2 tests |
+| **Telemetry Collector** | Real-time metrics collection | 10K events in 191µs | [OK] Tested |
+| **Thread Pool** | CPU-pinned thread management | Per-core affinity | [OK] 2 tests |
 
 ### Scheduler Components
 
 | Component | Description | Features | Tests |
 |-----------|-------------|----------|-------|
-| **Job State Machine** | Job lifecycle management | 7 states, transitions | ✅ 2 tests |
-| **Gang Scheduler** | All-or-nothing resource allocation | Topology-aware | ✅ 1 test |
-| **Node Registry** | Compute node management | GPU tracking | ✅ 3 tests |
-| **State Persistence** | Durable job/node storage | JSON-based | ✅ 2 tests |
+| **Job State Machine** | Job lifecycle management | 7 states, transitions | [OK] 2 tests |
+| **Gang Scheduler** | All-or-nothing resource allocation | Topology-aware | [OK] 1 test |
+| **Node Registry** | Compute node management | GPU tracking | [OK] 3 tests |
+| **State Persistence** | Durable job/node storage | JSON-based | [OK] 2 tests |
 
 ### Production Hardening
 
 | Component | Description | Pattern | Tests |
 |-----------|-------------|---------|-------|
-| **Circuit Breaker** | Fault tolerance | Industry standard | ✅ 3 tests |
-| **Health Checks** | Liveness/readiness probes | K8s compatible | ✅ 2 tests |
-| **Prometheus Metrics** | Metrics export | `/metrics` endpoint | ✅ Ready |
+| **Circuit Breaker** | Fault tolerance | Industry standard | [OK] 3 tests |
+| **Health Checks** | Liveness/readiness probes | K8s compatible | [OK] 2 tests |
+| **Prometheus Metrics** | Metrics export | `/metrics` endpoint | [OK] Ready |
 
 ---
 
-## ⚠️ Needs Additional Testing
+## Needs Additional Testing
 
 These components are implemented but require testing in real environments:
 
@@ -83,10 +83,10 @@ These components are implemented but require testing in real environments:
 
 | Item | Current Status | Testing Required |
 |------|----------------|------------------|
-| **Helm Chart** | ✅ Templates valid, YAML verified | Deploy to real K8s cluster |
-| **Dockerfile** | ✅ Multi-stage build ready | Build image, run container |
-| **Service Discovery** | ✅ Service definitions ready | Test with real Kubernetes DNS |
-| **Horizontal Scaling** | ✅ HPA configuration ready | Load test with auto-scaling |
+| **Helm Chart** | [OK] Templates valid, YAML verified | Deploy to real K8s cluster |
+| **Dockerfile** | [OK] Multi-stage build ready | Build image, run container |
+| **Service Discovery** | [OK] Service definitions ready | Test with real Kubernetes DNS |
+| **Horizontal Scaling** | [OK] HPA configuration ready | Load test with auto-scaling |
 
 **How to test:**
 ```bash
@@ -105,12 +105,12 @@ curl http://localhost:8080/health
 
 | Endpoint | Method | Status | Testing Required |
 |----------|--------|--------|------------------|
-| `/api/v1/jobs` | POST | ✅ Implemented | Submit real jobs |
-| `/api/v1/jobs/:id` | GET | ✅ Implemented | Query job status |
-| `/api/v1/jobs/:id` | DELETE | ✅ Implemented | Cancel running jobs |
-| `/api/v1/cluster/status` | GET | ✅ Implemented | Multi-node status |
-| `/api/v1/nodes` | GET | ✅ Implemented | Node listing |
-| `/health` | GET | ✅ Implemented | N/A (ready) |
+| `/api/v1/jobs` | POST | [OK] Implemented | Submit real jobs |
+| `/api/v1/jobs/:id` | GET | [OK] Implemented | Query job status |
+| `/api/v1/jobs/:id` | DELETE | [OK] Implemented | Cancel running jobs |
+| `/api/v1/cluster/status` | GET | [OK] Implemented | Multi-node status |
+| `/api/v1/nodes` | GET | [OK] Implemented | Node listing |
+| `/health` | GET | [OK] Implemented | N/A (ready) |
 
 **How to test:**
 ```bash
@@ -127,10 +127,10 @@ curl -X POST http://localhost:8080/api/v1/jobs \
 
 | Service | Method | Status | Testing Required |
 |---------|--------|--------|------------------|
-| SchedulerService | SubmitJob | ✅ Implemented | gRPC client calls |
-| SchedulerService | GetJobStatus | ✅ Implemented | Status queries |
-| SchedulerService | CancelJob | ✅ Implemented | Cancellation flow |
-| SchedulerService | GetClusterStatus | ✅ Implemented | Cluster overview |
+| SchedulerService | SubmitJob | [OK] Implemented | gRPC client calls |
+| SchedulerService | GetJobStatus | [OK] Implemented | Status queries |
+| SchedulerService | CancelJob | [OK] Implemented | Cancellation flow |
+| SchedulerService | GetClusterStatus | [OK] Implemented | Cluster overview |
 
 **How to test:**
 ```bash
@@ -159,9 +159,9 @@ cargo test -p zenith-runtime-gpu -- --nocapture
 
 | Feature | Current Status | Requirements |
 |---------|----------------|--------------|
-| **Basic Operations** | ✅ Implemented | Linux kernel 5.1+ |
-| **Submission Queue** | ✅ Mutex-protected | Modern Linux |
-| **Completion Queue** | ✅ Implemented | io_uring support |
+| **Basic Operations** | [OK] Implemented | Linux kernel 5.1+ |
+| **Submission Queue** | [OK] Mutex-protected | Modern Linux |
+| **Completion Queue** | [OK] Implemented | io_uring support |
 | **Registered Buffers** | Planned | Advanced use case |
 
 **How to test:**
@@ -175,7 +175,7 @@ cargo test --test integration -p zenith-runtime-cpu -- uring --nocapture
 
 ---
 
-## 🚧 Features in Development
+## Features in Development
 
 These features are planned or have placeholder implementations:
 
@@ -183,16 +183,16 @@ These features are planned or have placeholder implementations:
 
 | Feature | Description | Effort | Sponsor Opportunity |
 |---------|-------------|--------|---------------------|
-| **CUDA Kernel Integration** | Native CUDA kernel management | 2-3 weeks | ⭐ $5,000 |
-| **NCCL Collective Operations** | All-reduce, broadcast, etc. | 2-3 weeks | ⭐ $5,000 |
-| **Node Agent → Scheduler gRPC** | Real heartbeat/registration | 1 week | $2,000 |
+| **CUDA Kernel Integration** | Native CUDA kernel management | 2-3 weeks | $5,000 |
+| **NCCL Collective Operations** | All-reduce, broadcast, etc. | 2-3 weeks | $5,000 |
+| **Node Agent -> Scheduler gRPC** | Real heartbeat/registration | 1 week | $2,000 |
 | **Multi-node E2E Testing** | Distributed cluster testing | 1 week | $2,000 |
 
 ### Medium Priority (Phase 5)
 
 | Feature | Description | Effort | Sponsor Opportunity |
 |---------|-------------|--------|---------------------|
-| **RDMA/InfiniBand Support** | High-speed networking | 3-4 weeks | ⭐ $8,000 |
+| **RDMA/InfiniBand Support** | High-speed networking | 3-4 weeks | $8,000 |
 | **NVMe-oF Integration** | Remote NVMe storage | 2-3 weeks | $5,000 |
 | **Triton/TVM Kernels** | ML compiler integration | 3-4 weeks | $6,000 |
 | **Dynamic Precision Switching** | FP32/FP16/BF16/FP8 | 2 weeks | $4,000 |
@@ -201,14 +201,14 @@ These features are planned or have placeholder implementations:
 
 | Feature | Description | Effort | Sponsor Opportunity |
 |---------|-------------|--------|---------------------|
-| **Custom Kubernetes Operator** | CRD-based deployment | 4-6 weeks | ⭐ $15,000 |
+| **Custom Kubernetes Operator** | CRD-based deployment | 4-6 weeks | $15,000 |
 | **MLOps Dashboard** | Web UI for monitoring | 4-6 weeks | $12,000 |
 | **Hugging Face Integration** | Dataset/model hub | 2-3 weeks | $5,000 |
 | **AWS/GCP/Azure Adapters** | Cloud provider support | 4-6 weeks | $10,000 |
 
 ---
 
-## 📅 Roadmap Timeline
+## Roadmap Timeline
 
 ```
 2025 Q1 (Jan-Mar)
@@ -244,7 +244,7 @@ These features are planned or have placeholder implementations:
 
 ---
 
-## 💻 Hardware Requirements
+## Hardware Requirements
 
 ### Minimum (Development)
 - **CPU**: 4 cores
@@ -268,7 +268,7 @@ These features are planned or have placeholder implementations:
 
 ---
 
-## 🤝 How to Contribute
+## How to Contribute
 
 We welcome contributions! Here's how you can help:
 
@@ -293,14 +293,14 @@ We welcome contributions! Here's how you can help:
 ### Testing Help Needed
 
 We especially need help testing on:
-- ✅ Multi-GPU systems (NVLink/NVSwitch)
-- ✅ InfiniBand clusters
-- ✅ Large Kubernetes deployments (100+ nodes)
-- ✅ ARM64 platforms (AWS Graviton)
+- Multi-GPU systems (NVLink/NVSwitch)
+- InfiniBand clusters
+- Large Kubernetes deployments (100+ nodes)
+- ARM64 platforms (AWS Graviton)
 
 ---
 
-## 💰 Sponsorship Opportunities
+## Sponsorship Opportunities
 
 ### Why Sponsor Zenith?
 
@@ -313,11 +313,11 @@ We especially need help testing on:
 
 | Tier | Amount | Benefits |
 |------|--------|----------|
-| **🥉 Bronze** | $500/month | Logo on README, priority support |
-| **🥈 Silver** | $2,000/month | Bronze + quarterly roadmap input |
-| **🥇 Gold** | $5,000/month | Silver + dedicated Slack channel |
-| **💎 Platinum** | $10,000/month | Gold + feature prioritization |
-| **🏆 Enterprise** | Custom | Full partnership, custom features |
+| **Bronze** | $500/month | Logo on README, priority support |
+| **Silver** | $2,000/month | Bronze + quarterly roadmap input |
+| **Gold** | $5,000/month | Silver + dedicated Slack channel |
+| **Platinum** | $10,000/month | Gold + feature prioritization |
+| **Enterprise** | Custom | Full partnership, custom features |
 
 ### One-Time Feature Sponsorship
 
@@ -335,7 +335,7 @@ We especially need help testing on:
 
 ---
 
-## 📞 Contact
+## Contact
 
 ### Author
 
@@ -352,7 +352,7 @@ We especially need help testing on:
 
 ---
 
-## 📄 License
+## License
 
 Zenith is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 
@@ -360,8 +360,8 @@ Zenith is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for deta
 
 <div align="center">
 
-**Built with ❤️ for the ML community**
+**Built with passion for the ML community**
 
-*If this project helps you, please consider giving it a ⭐*
+*If this project helps you, please consider giving it a star*
 
 </div>

@@ -12,23 +12,23 @@
 
 ---
 
-## 📋 Status Overview
+## Status Overview
 
 | Feature | Implementation | Testing Status | Requirements |
 |---------|---------------|----------------|--------------|
-| **CUDA Runtime** | ✅ Complete | ⚠️ Community Testing | NVIDIA GPU + CUDA |
-| **TensorRT** | ✅ Complete | ⚠️ Community Testing | TensorRT SDK |
-| **Multi-GPU** | ✅ Complete | ⚠️ Community Testing | 2+ NVIDIA GPUs |
-| **ONNX Runtime** | ✅ Complete | ⚠️ Community Testing | onnxruntime |
+| **CUDA Runtime** | [OK] Complete | [!] Community Testing | NVIDIA GPU + CUDA |
+| **TensorRT** | [OK] Complete | [!] Community Testing | TensorRT SDK |
+| **Multi-GPU** | [OK] Complete | [!] Community Testing | 2+ NVIDIA GPUs |
+| **ONNX Runtime** | [OK] Complete | [!] Community Testing | onnxruntime |
 
 ### Legend
-- ✅ **Complete** - Code implemented based on official documentation
-- ⚠️ **Community Testing** - Needs validation on real hardware
-- ❌ **Not Started** - Feature not yet implemented
+- [OK] **Complete** - Code implemented based on official documentation
+- [!] **Community Testing** - Needs validation on real hardware
+- [-] **Not Started** - Feature not yet implemented
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Check GPU Availability
 
@@ -89,7 +89,7 @@ trainer.sync_gradients(&mut gradients)?;
 
 ---
 
-## 🔧 Installation
+## Installation
 
 ### Prerequisites
 
@@ -117,7 +117,7 @@ zenith-runtime-gpu = { version = "0.1", features = ["cuda", "tensorrt"] }
 
 ---
 
-## 📊 Expected Performance
+## Expected Performance
 
 Based on official NVIDIA benchmarks and documentation:
 
@@ -141,7 +141,7 @@ Based on official NVIDIA benchmarks and documentation:
 
 ---
 
-## 🔬 API Reference
+## API Reference
 
 ### CUDA Runtime (`cuda.rs`)
 
@@ -213,7 +213,7 @@ trainer.sync_gradients(&mut gradients)?;
 
 ---
 
-## 🧪 Community Testing Program
+## Community Testing Program
 
 We need YOUR help to validate GPU features!
 
@@ -258,7 +258,7 @@ We need YOUR help to validate GPU features!
 
 ---
 
-## 💰 Hardware Sponsor Opportunities
+## Hardware Sponsor Opportunities
 
 To fully validate GPU features, we're looking for hardware sponsors:
 
@@ -273,16 +273,16 @@ Interested? Contact us or open an issue!
 
 ---
 
-## 📝 Disclaimer
+## Disclaimer
 
 ```
-⚠️ COMMUNITY-TESTED FEATURES
+[!] COMMUNITY-TESTED FEATURES
 
 These GPU acceleration features are:
-- ✅ Implemented based on official NVIDIA documentation
-- ✅ Designed following CUDA/TensorRT best practices  
-- ✅ Unit tested with mock implementations
-- ⚠️ Awaiting validation on diverse real hardware
+- [OK] Implemented based on official NVIDIA documentation
+- [OK] Designed following CUDA/TensorRT best practices  
+- [OK] Unit tested with mock implementations
+- [!] Awaiting validation on diverse real hardware
 
 We welcome bug reports and feedback from the community.
 Performance numbers are estimates based on official benchmarks.
@@ -290,7 +290,7 @@ Performance numbers are estimates based on official benchmarks.
 
 ---
 
-## 🔗 Resources
+## Resources
 
 - [NVIDIA CUDA Documentation](https://docs.nvidia.com/cuda/)
 - [NVIDIA TensorRT Documentation](https://docs.nvidia.com/deeplearning/tensorrt/)
@@ -299,7 +299,7 @@ Performance numbers are estimates based on official benchmarks.
 
 ---
 
-## 📄 License
+## License
 
 Apache License 2.0 - All GPU acceleration code is open source.
 

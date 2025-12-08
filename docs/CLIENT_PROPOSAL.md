@@ -5,7 +5,7 @@
 
 ---
 
-## ⚡ Speed is the Only Currency
+## Speed is the Only Currency
 In the modern digital economy, a millisecond is not just time—it is revenue. Whether you are running High-Frequency Trading (HFT) algorithms, detecting fraud in payment gateways, or routing telecom packets, **latency is your enemy**.
 
 ## The Dilemma
@@ -16,7 +16,7 @@ Your Systems Engineers build in **Rust/C++** because it’s fast to run.
 ## Enter ZENITH
 Zenith is the world's first **Zero-Copy, Multi-Language Data Plane**.
 
-### 🚀 Why Zenith?
+### Why Zenith?
 1.  **Zero-Copy Architecture**: We don't copy data. We share memory. Your Python code writes to memory, and our Rust engine reads it *instantly*. P99 Latency: **< 50 microseconds**.
 2.  **Safety First**: Run untrusted user logic? No problem. Zenith wraps every plugin in a secure **WebAssembly Sandbox**.
 3.  **Unlimited Throughput**: Validated at **6,000,000 events/second** on a single node.

@@ -1,6 +1,6 @@
 # Zenith AI - Publication Strategy
 
-## 🎯 Target Platforms & Templates
+## Target Platforms & Templates
 
 ---
 
@@ -158,15 +158,15 @@ integration was particularly tricky to get right.
 
 Tweet 1:
 ```
-🚀 Introducing Zenith AI - a Rust-powered data loader for PyTorch & TensorFlow
+Introducing Zenith AI - a Rust-powered data loader for PyTorch & TensorFlow
 
 Stop starving your GPUs. Feed them with Zenith.
 
-📊 6M+ events/sec
-⚡ < 100µs latency
-🔧 pip install zenith-ai
+* 6M+ events/sec
+* < 100µs latency
+* pip install zenith-ai
 
-Thread 🧵👇
+Thread:
 ```
 
 Tweet 2:
@@ -212,11 +212,11 @@ Tweet 5:
 ```
 Zenith AI is 100% open source (Apache 2.0)
 
-⭐ Star on GitHub: github.com/vibeswithkk/Zenith-dataplane
-📦 Install: pip install zenith-ai
-📖 Docs: [link]
+Star on GitHub: github.com/vibeswithkk/Zenith-dataplane
+Install: pip install zenith-ai
+Docs: [link]
 
-Built for the AI era. Powered by Rust. 🦀
+Built for the AI era. Powered by Rust.
 ```
 
 ---
@@ -224,7 +224,7 @@ Built for the AI era. Powered by Rust. 🦀
 ## 5. LinkedIn Post
 
 ```
-🚀 Excited to announce Zenith AI v0.1.0!
+Excited to announce Zenith AI v0.1.0!
 
 After months of development, I'm releasing Zenith AI - a high-performance 
 data loading library for machine learning.
@@ -236,21 +236,21 @@ DataLoaders can't keep up.
 
 THE SOLUTION:
 Zenith AI uses:
-✅ Rust core for 6M+ events/second throughput
-✅ Apache Arrow for zero-copy memory
-✅ WASM plugins for secure preprocessing
-✅ Native PyTorch & TensorFlow integration
+* Rust core for 6M+ events/second throughput
+* Apache Arrow for zero-copy memory
+* WASM plugins for secure preprocessing
+* Native PyTorch & TensorFlow integration
 
 RESULTS:
-• 5-10x faster than standard DataLoaders
-• < 100µs latency
-• Simple: pip install zenith-ai
+* 5-10x faster than standard DataLoaders
+* < 100µs latency
+* Simple: pip install zenith-ai
 
 This is open source under Apache 2.0. I'd love feedback from the ML 
 infrastructure community!
 
-🔗 GitHub: https://github.com/vibeswithkk/Zenith-dataplane
-📦 PyPI: https://pypi.org/project/zenith-ai/
+GitHub: https://github.com/vibeswithkk/Zenith-dataplane
+PyPI: https://pypi.org/project/zenith-ai/
 
 #MachineLearning #DeepLearning #Rust #Python #OpenSource #MLOps #AI
 ```
@@ -267,7 +267,7 @@ infrastructure community!
 
 ---
 
-## 📅 Publication Schedule
+## Publication Schedule
 
 | Day | Platform | Action |
 |-----|----------|--------|
@@ -281,7 +281,7 @@ infrastructure community!
 
 ---
 
-## 🎯 Tips for Success
+## Tips for Success
 
 1. **Timing**: Post on HN at 9-11 AM EST (Tuesday-Thursday best)
 2. **Engage**: Reply to ALL comments within first 2 hours
@@ -291,7 +291,7 @@ infrastructure community!
 
 ---
 
-## 📊 Metrics to Track
+## Metrics to Track
 
 - GitHub stars
 - PyPI downloads
