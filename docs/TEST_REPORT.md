@@ -1,6 +1,6 @@
 # Zenith Test Report
 
-**Version:** 0.2.2  
+**Version:** 0.2.3  
 **Author:** Wahyu Ardiansyah  
 **Date:** 2024-12-09  
 **Test Environment:** Linux x86_64  
@@ -9,27 +9,40 @@
 
 ## Executive Summary
 
-All tests pass with 100% success rate. The test suite covers critical functionality including data loading, FFI safety, input validation, and concurrent operations. Mutation testing confirms high test quality with **86.3% mutation score**.
+All tests pass with 100% success rate. The test suite covers critical functionality including data loading, FFI safety, input validation, concurrent operations, and WASM plugin handling. Mutation testing confirms high test quality with **88.2% mutation score**.
 
 ### Test Coverage Summary
 
 | Category | Tests | Passed | Failed |
 |----------|-------|--------|--------|
-| zenith-core | 36 | 36 | 0 |
+| zenith-core | 51 | 51 | 0 |
 | zenith-runtime-cpu | 52 | 52 | 0 |
-| **Total** | **88** | **88** | **0** |
+| **Total** | **103** | **103** | **0** |
 
 ### Mutation Testing Results
 
 | Metric | Value | Status |
 |--------|-------|--------|
 | Total Mutants | 101 | - |
-| Caught (Tests Killed) | 44 | [OK] |
-| Missed | 7 | Acceptable |
+| Caught (Tests Killed) | 45 | [OK] |
+| Missed | 6 | Acceptable |
 | Unviable (Build Errors) | 50 | Expected |
-| **Mutation Score** | **86.3%** | [OK] Excellent |
+| **Mutation Score** | **88.2%** | [OK] Excellent |
 
-**Note:** Mutation score is calculated as: caught / (caught + missed) = 44/51 = 86.3%
+**Note:** Mutation score is calculated as: caught / (caught + missed) = 45/51 = 88.2%
+
+### Remaining Missed Mutations (6)
+
+These mutations are difficult to catch in unit tests due to their side-effect nature:
+
+| Location | Mutation | Reason Difficult to Test |
+|----------|----------|--------------------------|
+| `engine.rs:38` | replace start with () | Thread spawning side-effect |
+| `engine.rs:68` | delete `!` operator | Internal loop logic |
+| `wasm_host.rs:50` | on_event return Ok(true) | Requires real WASM plugin |
+| `wasm_host.rs:58` | replace != with == | Requires WASM returning 0 |
+| `admin_api.rs:41` | get_plugins empty vec | Requires loaded plugins |
+| `admin_api.rs:50` | replace start_admin_server with () | Async server binding |
 
 ---
 
