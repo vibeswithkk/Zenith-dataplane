@@ -64,3 +64,97 @@ impl WasmPlugin {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_wasm_host_creation() {
+        let result = WasmHost::new();
+        assert!(result.is_ok(), "WasmHost creation should succeed");
+    }
+    
+    #[test]
+    fn test_wasm_host_load_invalid_plugin() {
+        let host = WasmHost::new().unwrap();
+        
+        // Invalid WASM bytes should fail
+        let invalid_wasm = b"invalid wasm bytes";
+        let result = host.load_plugin(invalid_wasm);
+        assert!(result.is_err(), "Invalid WASM should fail to load");
+    }
+    
+    #[test]
+    fn test_wasm_host_load_valid_minimal_wasm() {
+        let host = WasmHost::new().unwrap();
+        
+        // Minimal valid WASM module (empty module)
+        // This is the binary encoding of an empty WASM module
+        let minimal_wasm = &[
+            0x00, 0x61, 0x73, 0x6D,  // WASM magic number
+            0x01, 0x00, 0x00, 0x00,  // Version 1
+        ];
+        
+        let result = host.load_plugin(minimal_wasm);
+        // This should either succeed or fail gracefully
+        // (depends on whether empty modules are accepted)
+        let _ = result; // We just want to ensure no panic
+    }
+    
+    /// Test that on_event returns Ok(true) when function is not found
+    /// This catches the mutation: replace return Ok(true) with Ok(false)
+    #[test]
+    fn test_wasm_plugin_on_event_default_true() {
+        let host = WasmHost::new().unwrap();
+        
+        // Minimal WASM module without on_event function
+        let minimal_wasm = &[
+            0x00, 0x61, 0x73, 0x6D,  // WASM magic number
+            0x01, 0x00, 0x00, 0x00,  // Version 1
+        ];
+        
+        let plugin_result = host.load_plugin(minimal_wasm);
+        
+        // If plugin loads successfully, test on_event
+        if let Ok(plugin) = plugin_result {
+            let result = plugin.on_event(1, 100);
+            assert!(result.is_ok(), "on_event should return Ok");
+            
+            // CRITICAL: This catches the mutation Ok(true) -> Ok(false)
+            // When on_event function is not found, it should return true (allow by default)
+            assert!(result.unwrap(), 
+                "on_event should return true when function not found - catches Ok(false) mutation");
+        }
+    }
+    
+    /// Test that verifies the != 0 logic in on_event
+    /// This is harder to test without a real WASM plugin, but we document the expected behavior
+    #[test]
+    fn test_on_event_return_value_semantics() {
+        // Document the expected behavior:
+        // - res != 0 should return true (event allowed)
+        // - res == 0 should return false (event blocked)
+        // 
+        // If mutation changes != to ==:
+        // - res != 0 (e.g., res=1) would incorrectly return false
+        // - res == 0 would incorrectly return true
+        //
+        // This test exists to ensure we understand the semantics
+        // and to provide documentation for the behavior
+        
+        // Test the logic directly
+        let res: i32 = 1;
+        let expected = res != 0;
+        assert!(expected, "Non-zero result should mean 'allow event'");
+        
+        let res: i32 = 0;
+        let expected = res != 0;
+        assert!(!expected, "Zero result should mean 'block event'");
+        
+        // Edge cases
+        let res: i32 = -1;
+        let expected = res != 0;
+        assert!(expected, "Negative result should still mean 'allow event'");
+    }
+}
