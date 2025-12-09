@@ -78,3 +78,6 @@ docs/_build/
 
 # Examples data
 examples/data/
+venv/
+.venv/
+dist/
