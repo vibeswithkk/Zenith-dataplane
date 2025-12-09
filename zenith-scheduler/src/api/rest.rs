@@ -103,9 +103,12 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
+/// Response for successful operations
 #[derive(Debug, Serialize)]
 pub struct SuccessResponse {
+    /// Status of the operation (e.g., "success", "error")
     pub status: String,
+    /// Human-readable message describing the result
     pub message: String,
 }
 

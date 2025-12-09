@@ -4,9 +4,9 @@
 //! Implemented based on official NVIDIA CUDA documentation.
 //!
 //! ## Status
-//! - ✅ Implemented based on official CUDA API
-//! - ⚠️ Requires community validation on real hardware
-//! - 📋 Feedback welcome: https://github.com/vibeswithkk/Zenith-dataplane/issues
+//! -  Implemented based on official CUDA API
+//! -  Requires community validation on real hardware
+//! -  Feedback welcome: https://github.com/vibeswithkk/Zenith-dataplane/issues
 
 use std::ffi::c_void;
 use std::ptr;

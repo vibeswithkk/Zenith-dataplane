@@ -57,6 +57,7 @@ pub mod allocator;
 pub mod buffer;
 pub mod circuit_breaker;
 pub mod config;
+pub mod dataloader;
 pub mod engine;
 pub mod health;
 pub mod io;
@@ -75,6 +76,7 @@ pub use buffer::{RingBuffer, SpscRingBuffer, MpmcRingBuffer};
 pub use allocator::NumaAllocator;
 pub use numa::NumaTopology;
 pub use telemetry::TelemetryCollector;
+pub use dataloader::{DataLoader, LoaderConfig, DataSource, FileFormat, BatchIterator};
 
 /// Crate version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -112,6 +114,10 @@ pub enum Error {
     /// io_uring errors
     #[error("io_uring error: {0}")]
     IoUring(String),
+    
+    /// Feature not yet implemented
+    #[error("Not implemented: {0}")]
+    NotImplemented(String),
 }
 
 #[cfg(test)]

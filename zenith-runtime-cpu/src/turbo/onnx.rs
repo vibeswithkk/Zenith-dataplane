@@ -3,7 +3,6 @@
 //! Fast inference using ONNX Runtime for any ML model.
 
 use std::path::Path;
-use std::sync::Arc;
 
 /// ONNX execution provider
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -83,8 +82,11 @@ impl Default for OnnxConfig {
 /// Tensor shape information
 #[derive(Debug, Clone)]
 pub struct TensorInfo {
+    /// Tensor name (e.g., "input", "output")
     pub name: String,
+    /// Shape dimensions (-1 indicates dynamic dimension)
     pub shape: Vec<i64>,
+    /// Data type of the tensor
     pub dtype: TensorType,
 }
 
@@ -254,10 +256,15 @@ torch.onnx.export(model, dummy, '{}', opset_version=17)
 
 /// Inference benchmark helper
 pub struct InferenceBenchmark {
+    /// Name of the model being benchmarked
     pub model_name: String,
+    /// Execution provider to use for inference
     pub provider: ExecutionProvider,
+    /// Number of warmup runs before timing
     pub warmup_runs: u32,
+    /// Number of timed benchmark runs
     pub benchmark_runs: u32,
+    /// Batch size for inference
     pub batch_size: usize,
 }
 

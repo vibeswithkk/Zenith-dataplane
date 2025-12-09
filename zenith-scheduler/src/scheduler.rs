@@ -43,6 +43,10 @@ pub struct SchedulerConfig {
     pub topology_aware: bool,
     /// Prefer same-node allocation for multi-GPU jobs
     pub prefer_same_node: bool,
+    /// Job timeout in seconds (0 = no timeout)
+    pub job_timeout_secs: u64,
+    /// Heartbeat timeout in seconds - mark node dead if no heartbeat
+    pub heartbeat_timeout_secs: u64,
 }
 
 impl Default for SchedulerConfig {
@@ -52,6 +56,8 @@ impl Default for SchedulerConfig {
             backfill_enabled: true,
             topology_aware: true,
             prefer_same_node: true,
+            job_timeout_secs: 86400,      // 24 hours default
+            heartbeat_timeout_secs: 60,   // 1 minute default
         }
     }
 }
@@ -316,6 +322,97 @@ impl Scheduler {
     /// Get queue size
     pub fn queue_size(&self) -> usize {
         self.pending_queue.read().len()
+    }
+    
+    /// Clean up zombie jobs (jobs on dead nodes or timed out)
+    /// 
+    /// This should be called periodically (e.g., every minute) to detect
+    /// and handle jobs that are stuck in Running state.
+    /// 
+    /// Returns the number of jobs cleaned up.
+    pub fn cleanup_zombie_jobs(&self) -> usize {
+        let mut cleaned = 0;
+        let now = chrono::Utc::now();
+        let mut jobs = self.jobs.write();
+        
+        for job in jobs.values_mut() {
+            if job.state != JobState::Running {
+                continue;
+            }
+            
+            // Check if job has timed out
+            if self.config.job_timeout_secs > 0 {
+                if let Some(start_time) = job.start_time {
+                    let elapsed = (now - start_time).num_seconds() as u64;
+                    if elapsed > self.config.job_timeout_secs {
+                        job.transition(
+                            JobState::Timeout,
+                            &format!("Job exceeded timeout of {} seconds", self.config.job_timeout_secs)
+                        );
+                        info!("Job {} timed out after {} seconds", job.id, elapsed);
+                        cleaned += 1;
+                        continue;
+                    }
+                }
+            }
+            
+            // Check if allocated nodes are still healthy
+            let mut any_dead = false;
+            for node_id in &job.allocated_nodes {
+                if !self.nodes.is_node_healthy(node_id) {
+                    any_dead = true;
+                    break;
+                }
+            }
+            
+            if any_dead {
+                job.transition(
+                    JobState::Failed,
+                    "Allocated node(s) became unhealthy"
+                );
+                info!("Job {} failed due to unhealthy node", job.id);
+                cleaned += 1;
+            }
+        }
+        
+        if cleaned > 0 {
+            info!("Cleaned up {} zombie jobs", cleaned);
+        }
+        
+        cleaned
+    }
+    
+    /// Mark a job as started (call when job actually begins execution)
+    pub fn mark_job_started(&self, job_id: &str) -> Result<()> {
+        let mut jobs = self.jobs.write();
+        
+        if let Some(job) = jobs.get_mut(job_id) {
+            // Note: transition() already sets start_time for JobState::Running
+            job.transition(JobState::Running, "Job started on node");
+            info!("Job {} marked as running", job_id);
+            Ok(())
+        } else {
+            Err(Error::Job(format!("Job not found: {}", job_id)))
+        }
+    }
+    
+    /// Mark a job as completed
+    pub fn mark_job_completed(&self, job_id: &str, success: bool, message: &str) -> Result<()> {
+        let mut jobs = self.jobs.write();
+        
+        if let Some(job) = jobs.get_mut(job_id) {
+            let new_state = if success { JobState::Completed } else { JobState::Failed };
+            job.transition(new_state, message);
+            info!("Job {} marked as {:?}: {}", job_id, new_state, message);
+            Ok(())
+        } else {
+            Err(Error::Job(format!("Job not found: {}", job_id)))
+        }
+    }
+    
+    /// Get configuration
+    pub fn config(&self) -> &SchedulerConfig {
+        &self.config
     }
 }
 

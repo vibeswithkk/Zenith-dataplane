@@ -52,21 +52,36 @@ pub mod iouring {
         }
         
         /// Submit a read operation
+        /// 
+        /// **Status:** Not yet implemented. Use `standard::AsyncFileReader` instead.
         pub async fn read(&self, _fd: RawFd, _buf: &mut [u8], _offset: u64) -> Result<usize> {
-            // Placeholder for io_uring read
-            todo!("io_uring read implementation")
+            // io_uring implementation requires the io-uring crate and kernel 5.1+
+            // For now, return an error instead of panicking
+            Err(crate::Error::NotImplemented(
+                "io_uring read not yet implemented. Use standard::AsyncFileReader as fallback.".into()
+            ))
         }
         
         /// Submit a write operation
+        /// 
+        /// **Status:** Not yet implemented. Use `standard::AsyncFileWriter` instead.
         pub async fn write(&self, _fd: RawFd, _buf: &[u8], _offset: u64) -> Result<usize> {
-            // Placeholder for io_uring write
-            todo!("io_uring write implementation")
+            // io_uring implementation requires the io-uring crate and kernel 5.1+
+            // For now, return an error instead of panicking
+            Err(crate::Error::NotImplemented(
+                "io_uring write not yet implemented. Use standard::AsyncFileWriter as fallback.".into()
+            ))
         }
         
         /// Submit a batch of operations
+        /// 
+        /// **Status:** Not yet implemented.
         pub async fn submit_batch(&self) -> Result<usize> {
-            // Placeholder for batch submission
-            todo!("io_uring batch submission")
+            // io_uring batch submission requires full ring implementation
+            // For now, return an error instead of panicking
+            Err(crate::Error::NotImplemented(
+                "io_uring batch submission not yet implemented.".into()
+            ))
         }
     }
 }

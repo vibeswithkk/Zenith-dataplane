@@ -58,7 +58,7 @@ impl ZenithEngine {
             while running.load(std::sync::atomic::Ordering::Relaxed) {
                 if let Some(event) = buffer.pop() {
                     // Process event
-                    let mut plugin_list = plugins.lock().unwrap();
+                    let plugin_list = plugins.lock().unwrap();
                     let mut allowed = true;
                     
                     for plugin in plugin_list.iter() {

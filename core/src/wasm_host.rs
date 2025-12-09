@@ -16,7 +16,7 @@ pub struct WasmHost {
 
 impl WasmHost {
     pub fn new() -> Result<Self> {
-        let mut config = Config::new();
+        let config = Config::new();
         // config.wasm_component_model(true); // Disable for basic module
         
         let engine = Engine::new(&config)?;

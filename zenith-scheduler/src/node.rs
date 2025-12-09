@@ -229,6 +229,15 @@ impl NodeRegistry {
             .collect()
     }
     
+    /// Check if a specific node is healthy
+    pub fn is_node_healthy(&self, node_id: &str) -> bool {
+        if let Some(node) = self.nodes.read().get(node_id) {
+            node.health == NodeHealth::Healthy && !node.is_stale(self.heartbeat_timeout_seconds)
+        } else {
+            false
+        }
+    }
+    
     /// Get cluster summary
     pub fn summary(&self) -> ClusterSummary {
         let nodes = self.nodes.read();
