@@ -1,17 +1,12 @@
 # Zenith v0.2.0 Benchmark Report
-
-**Author:** Wahyu Ardiansyah  
-**Date:** 2024-12-09  
-**Hardware:** Linux x86_64, NVMe SSD  
-
+**Author:** Wahyu Ardiansyah 
+**Date:** 2024-12-09 
+**Hardware:** Linux x86_64, NVMe SSD 
 ---
-
 ## Executive Summary
 
 This report presents reproducible benchmark results comparing Zenith's data loading performance against industry-standard solutions. Results demonstrate that Zenith achieves **significant performance improvements** in data loading throughput for ML training pipelines.
-
 ---
-
 ## Test Configuration
 
 | Parameter | Value |
@@ -20,11 +15,8 @@ This report presents reproducible benchmark results comparing Zenith's data load
 | **Batch Size** | 64 |
 | **Duration** | 10 seconds per benchmark |
 | **Workers** | 4 |
-
 ---
-
 ## Benchmark Results
-
 ### Zenith Performance
 
 | Mode | Throughput (samples/s) | Latency p50 (ms) | Latency p99 (ms) |
@@ -32,17 +24,13 @@ This report presents reproducible benchmark results comparing Zenith's data load
 | **Zenith Engine** | **1,351,591** | 0.044 | 0.074 |
 | PyArrow Direct | 1,342,076 | 0.044 | 0.077 |
 | Batch Iterator | 320,219 | 0.050 | 0.134 |
-
 ### Key Findings
 
 1. **Zenith Engine achieves 1.35M+ samples/second** on columnar Parquet data
 2. **Sub-millisecond latencies** (p99 < 0.1ms) for batch loading
 3. **4.2x faster than batch iteration** mode
-
 ---
-
 ## Comparison Analysis
-
 ### Zenith vs Baseline Loaders
 
 | Loader | Throughput | Relative Performance |
@@ -50,26 +38,21 @@ This report presents reproducible benchmark results comparing Zenith's data load
 | Zenith Engine | 1,351,591 | **1.00x (baseline)** |
 | PyArrow Direct | 1,342,076 | 0.99x |
 | Streaming Iterator | 320,219 | 0.24x |
-
 ### MVP Success Criteria
 
 | Criteria | Target | Result | Status |
 |----------|--------|--------|--------|
-| Throughput improvement | ≥20% vs basic loader | **322% improvement** | ✅ PASS |
-| Latency p99 | <10ms | 0.074ms | ✅ PASS |
-| Reproducibility | Scripts & logs available | Available in bench/ | ✅ PASS |
-
+| Throughput improvement | ≥20% vs basic loader | **322% improvement** | [OK] PASS |
+| Latency p99 | <10ms | 0.074ms | [OK] PASS |
+| Reproducibility | Scripts & logs available | Available in bench/ | [OK] PASS |
 ---
-
 ## Methodology
-
 ### Test Procedure
 
 1. **Dataset Generation**: Synthetic Parquet file with mixed numeric and binary columns
 2. **Warmup**: 3 batch iterations before measurement
 3. **Measurement**: Continuous batch iteration for specified duration
 4. **Metrics Collection**: Per-batch timing with high-resolution timer
-
 ### Reproducibility
 
 All benchmarks can be reproduced using:
@@ -77,86 +60,68 @@ All benchmarks can be reproduced using:
 ```bash
 # Generate datasets
 python bench/generate_datasets.py --scale tiny
-
 # Run Zenith benchmark
 python bench/zenith/zenith_benchmark.py --duration 10 --batch-size 64 --mode all
-
 # Run PyTorch baseline
 python bench/baselines/pytorch_baseline.py --duration 10 --batch-size 64
 ```
-
 ---
-
 ## Technical Details
-
 ### Zenith Architecture Advantages
 
 1. **Zero-Copy Arrow Path**: Direct memory access without serialization
 2. **Columnar Processing**: Efficient batch slicing via Arrow
 3. **Native Rust Core**: FFI bridge with minimal overhead
 4. **Memory Efficiency**: In-place array access
-
 ### Workload Characteristics
-
 - **Data Type**: Float32 numeric columns + binary blobs
 - **Access Pattern**: Sequential batch iteration with shuffling
 - **Memory Profile**: < 100MB peak usage
-
 ---
-
 ## Conclusions
 
 1. **Zenith meets and exceeds MVP performance targets**
 2. **Sub-millisecond batch loading** enables high GPU utilization
 3. **Zero-copy Arrow integration** provides significant throughput gains
 4. **Results are reproducible** with provided benchmark scripts
-
 ---
-
 ## Future Work
 
 1. Multi-worker parallel prefetching
 2. WebDataset/TAR shard streaming
 3. S3 object storage adapter
 4. GPU-accelerated decoding (DALI integration)
-
 ---
-
 ## Appendix
-
 ### Raw Results
 
 ```json
 {
-  "benchmark": "zenith",
-  "zenith_engine": {
-    "throughput": 1351591,
-    "latency_p50_ms": 0.044,
-    "latency_p99_ms": 0.074,
-    "total_samples": 12950000,
-    "epochs": 1295
-  },
-  "pyarrow_direct": {
-    "throughput": 1342076,
-    "latency_p50_ms": 0.044,
-    "latency_p99_ms": 0.077
-  },
-  "batch_iterator": {
-    "throughput": 320219,
-    "latency_p50_ms": 0.050,
-    "latency_p99_ms": 0.134
-  }
+ "benchmark": "zenith",
+ "zenith_engine": {
+ "throughput": 1351591,
+ "latency_p50_ms": 0.044,
+ "latency_p99_ms": 0.074,
+ "total_samples": 12950000,
+ "epochs": 1295
+ },
+ "pyarrow_direct": {
+ "throughput": 1342076,
+ "latency_p50_ms": 0.044,
+ "latency_p99_ms": 0.077
+ },
+ "batch_iterator": {
+ "throughput": 320219,
+ "latency_p50_ms": 0.050,
+ "latency_p99_ms": 0.134
+ }
 }
 ```
-
 ### Environment
-
 - Python: 3.12
 - PyArrow: 22.0.0
 - Zenith: 0.1.0
 - OS: Linux (Ubuntu)
-
 ---
-
-*Report generated by Zenith Benchmark Suite*  
+*Report generated by Zenith Benchmark Suite* 
 *Repository: https://github.com/vibeswithkk/Zenith-dataplane*
