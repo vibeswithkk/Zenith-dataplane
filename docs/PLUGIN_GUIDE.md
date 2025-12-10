@@ -270,7 +270,8 @@ fn simple_hash(s: &str) -> u32 {
 [profile.release]
 opt-level = "z"     # Optimize for size
 lto = true          # Link-time optimization
-strip = true        # Strip symbols
+# Note: 'strip' is not effective for wasm32-wasip1 target
+# Use wasm-opt for further size reduction: wasm-opt -Oz input.wasm -o output.wasm
 ```
 
 ### 2. Handle Errors Gracefully
