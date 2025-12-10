@@ -39,8 +39,8 @@ Quick Start
 For more details, see: https://github.com/yourusername/zenith
 """
 
-__version__ = "0.1.0"
-__author__ = "Zenith Contributors"
+__version__ = "0.2.3"
+__author__ = "Wahyu Ardiansyah"
 
 # ============================================================================
 # Core imports
@@ -50,7 +50,6 @@ __author__ = "Zenith Contributors"
 _NATIVE_AVAILABLE = False
 try:
     from zenith._core import Engine as NativeEngine
-    from zenith._core import version as native_version
     from zenith._core import is_available
     _NATIVE_AVAILABLE = is_available()
 except ImportError:

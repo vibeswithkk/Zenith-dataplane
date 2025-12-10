@@ -19,7 +19,7 @@ except ImportError:
 import pyarrow as pa
 
 
-class ZenithDataset(IterableDataset if TORCH_AVAILABLE else object):
+class ZenithDataset(IterableDataset if TORCH_AVAILABLE else object):  # type: ignore[misc]
     """
     PyTorch-compatible Dataset using Zenith for data loading.
     
@@ -147,7 +147,7 @@ class ZenithDataset(IterableDataset if TORCH_AVAILABLE else object):
         )
 
 
-class ZenithMapDataset(Dataset if TORCH_AVAILABLE else object):
+class ZenithMapDataset(Dataset if TORCH_AVAILABLE else object):  # type: ignore[misc]
     """
     Map-style PyTorch Dataset for random access.
     

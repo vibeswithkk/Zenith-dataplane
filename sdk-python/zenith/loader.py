@@ -5,7 +5,7 @@ Framework-agnostic high-performance data loading.
 """
 
 from pathlib import Path
-from typing import Optional, Union, Iterator, Any, List
+from typing import Optional, Union, Iterator
 import pyarrow as pa
 
 

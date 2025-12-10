@@ -108,7 +108,9 @@ impl Default for DeviceProperties {
 /// CUDA stream handle
 #[derive(Debug)]
 pub struct CudaStream {
+    #[allow(dead_code)]
     handle: u64, // Placeholder for cudaStream_t
+    #[allow(dead_code)]
     device_id: i32,
 }
 
@@ -184,6 +186,7 @@ impl Drop for CudaMemory {
 
 /// CUDA Runtime wrapper
 pub struct CudaRuntime {
+    #[allow(dead_code)]
     initialized: bool,
     device_count: i32,
     current_device: i32,

@@ -29,7 +29,8 @@ impl ZenithEngine {
 
     pub fn load_plugin(&self, wasm_bytes: &[u8]) -> Result<()> {
         let plugin = self.wasm_host.load_plugin(wasm_bytes)?;
-        let mut plugins = self.plugins.lock().unwrap();
+        let mut plugins = self.plugins.lock()
+            .map_err(|_| anyhow::anyhow!("Failed to acquire plugin lock"))?;
         plugins.push(plugin);
         Ok(())
     }
@@ -58,7 +59,10 @@ impl ZenithEngine {
             while running.load(std::sync::atomic::Ordering::Relaxed) {
                 if let Some(event) = buffer.pop() {
                     // Process event
-                    let plugin_list = plugins.lock().unwrap();
+                    let plugin_list = match plugins.lock() {
+                        Ok(guard) => guard,
+                        Err(poisoned) => poisoned.into_inner(), // Recover from poisoned mutex
+                    };
                     let mut allowed = true;
                     
                     for plugin in plugin_list.iter() {

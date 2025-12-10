@@ -6,9 +6,8 @@ The high-performance Rust-powered engine for data loading and preprocessing.
 
 import ctypes
 import os
-import sys
 from pathlib import Path
-from typing import Optional, Union, List, Any
+from typing import Optional, Union, List
 
 import pyarrow as pa
 

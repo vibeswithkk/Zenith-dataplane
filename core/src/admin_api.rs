@@ -29,7 +29,7 @@ struct PluginResponse {
 }
 
 async fn get_status(State(state): State<AdminState>) -> Json<StatusResponse> {
-    let plugins = state.plugins.lock().unwrap();
+    let plugins = state.plugins.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     Json(StatusResponse {
         status: "running".to_string(),
         buffer_len: state.buffer.len(),
@@ -38,7 +38,7 @@ async fn get_status(State(state): State<AdminState>) -> Json<StatusResponse> {
 }
 
 async fn get_plugins(State(state): State<AdminState>) -> Json<Vec<PluginResponse>> {
-    let plugins = state.plugins.lock().unwrap();
+    let plugins = state.plugins.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let list = plugins.iter().enumerate().map(|(i, _)| PluginResponse {
         id: i,
         status: "loaded".to_string(),
@@ -55,8 +55,16 @@ pub async fn start_admin_server(state: AdminState, port: u16) {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     println!("Zenith Admin API listening on {}", addr);
     
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    match tokio::net::TcpListener::bind(addr).await {
+        Ok(listener) => {
+            if let Err(e) = axum::serve(listener, app).await {
+                eprintln!("Admin server error: {}", e);
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to bind admin server to {}: {}", addr, e);
+        }
+    }
 }
 
 #[cfg(test)]

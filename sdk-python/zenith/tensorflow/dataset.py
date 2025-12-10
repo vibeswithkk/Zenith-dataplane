@@ -110,10 +110,11 @@ class ZenithDataset:
             output_signature=signature
         )
     
-    def batch(self, batch_size: int):
+    def batch(self, batch_size: int) -> 'ZenithDataset':
         """Batch the dataset."""
         self._ensure_loaded()
-        self._tf_dataset = self._tf_dataset.batch(batch_size)
+        if self._tf_dataset is not None:
+            self._tf_dataset = self._tf_dataset.batch(batch_size)
         return self
     
     def prefetch(self, buffer_size):
@@ -122,10 +123,11 @@ class ZenithDataset:
         self._tf_dataset = self._tf_dataset.prefetch(buffer_size)
         return self
     
-    def shuffle(self, buffer_size: int):
+    def shuffle(self, buffer_size: int) -> 'ZenithDataset':
         """Shuffle the dataset."""
         self._ensure_loaded()
-        self._tf_dataset = self._tf_dataset.shuffle(buffer_size)
+        if self._tf_dataset is not None:
+            self._tf_dataset = self._tf_dataset.shuffle(buffer_size)
         return self
     
     def map(self, map_func, num_parallel_calls=None):
@@ -143,10 +145,11 @@ class ZenithDataset:
         self._tf_dataset = self._tf_dataset.repeat(count)
         return self
     
-    def take(self, count: int):
+    def take(self, count: int) -> 'ZenithDataset':
         """Take first N elements."""
         self._ensure_loaded()
-        self._tf_dataset = self._tf_dataset.take(count)
+        if self._tf_dataset is not None:
+            self._tf_dataset = self._tf_dataset.take(count)
         return self
     
     def __iter__(self):

@@ -76,6 +76,7 @@ impl Default for BuilderConfig {
 
 /// TensorRT engine (compiled model)
 pub struct TrtEngine {
+ #[allow(dead_code)]
  model_path: String,
  precision: Precision,
  max_batch_size: i32,

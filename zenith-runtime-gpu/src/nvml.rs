@@ -155,6 +155,7 @@ pub struct GpuInfo {
 
 /// NVML-like GPU management interface
 pub struct NvmlManager {
+    #[allow(dead_code)]
     initialized: bool,
     gpu_count: u32,
 }

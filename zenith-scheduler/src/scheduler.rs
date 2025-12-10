@@ -138,11 +138,10 @@ impl Scheduler {
         let mut queue = self.pending_queue.write();
         let mut jobs = self.jobs.write();
         
-        let mut processed = 0;
         let mut to_remove = vec![];
         
         // Process jobs in priority order
-        for (job_id, _priority) in queue.iter() {
+        for (processed, (job_id, _priority)) in queue.iter().enumerate() {
             if processed >= self.config.max_schedule_batch {
                 break;
             }
@@ -165,8 +164,6 @@ impl Scheduler {
                     );
                 }
             }
-            
-            processed += 1;
         }
         
         // Remove scheduled jobs from queue

@@ -9,7 +9,7 @@ import os
 import time
 import functools
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any, Callable
+from typing import Optional, List, Dict, Callable
 from enum import Enum
 
 try:
@@ -211,6 +211,8 @@ class SchedulerClient:
                 if attempt == self.retry_count - 1:
                     raise SchedulerError("Request timed out")
                 time.sleep(1 * (attempt + 1))
+        
+        raise SchedulerError("Max retries exceeded")
     
     def health(self) -> bool:
         """Check if scheduler is healthy."""
