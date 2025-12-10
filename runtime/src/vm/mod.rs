@@ -1,9 +1,15 @@
 /// Virtual Machine abstraction for WASM execution
 /// Wraps Wasmtime with additional runtime features
-use wasmtime::{Engine as WasmEngine, Store, Instance, Module, Linker};
-use wasmtime_wasi::WasiCtx;
+use wasmtime::{Engine as WasmEngine, Store, Module, Linker};
+use wasmtime_wasi::WasiCtxBuilder;
+use wasmtime_wasi::preview1::WasiP1Ctx;
 use anyhow::Result;
 use std::sync::Arc;
+
+/// WASI state container for wasmtime v27+
+struct WasiState {
+    wasi: WasiP1Ctx,
+}
 
 /// WASM Virtual Machine
 pub struct VM {
@@ -23,13 +29,16 @@ impl VM {
     /// Execute the WASM module's exported function
     pub fn execute(&self, function_name: &str, args: &[i64]) -> Result<Vec<i64>> {
         let mut linker = Linker::new(&self.engine);
-        wasmtime_wasi::add_to_linker(&mut linker, |s| s)?;
         
-        let wasi = wasmtime_wasi::WasiCtxBuilder::new()
+        // wasmtime v27+ uses preview1 compatibility layer
+        wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |s: &mut WasiState| &mut s.wasi)?;
+        
+        let wasi_ctx = WasiCtxBuilder::new()
             .inherit_stdio()
-            .build();
+            .build_p1();
         
-        let mut store = Store::new(&self.engine, wasi);
+        let wasi_state = WasiState { wasi: wasi_ctx };
+        let mut store = Store::new(&self.engine, wasi_state);
         let instance = linker.instantiate(&mut store, &self.module)?;
         
         // Try to get the function

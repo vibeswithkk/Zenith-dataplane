@@ -1,12 +1,11 @@
 //! Node Agent - Runs on compute nodes
 
-use crate::node::{Node, NodeTopology, GpuDevice, NodeHealth};
-use crate::{Error, Result};
+use crate::node::{Node, NodeTopology, GpuDevice};
+use crate::Result;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::time::Duration;
 use tokio::time::interval;
-use tracing::{info, warn, error, debug};
+use tracing::{info, warn, debug};
 
 /// Node agent configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -96,7 +95,7 @@ impl NodeAgent {
             Ok(output) if output.status.success() => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 stdout.lines()
-                    .filter_map(|line| Self::parse_gpu_line(line))
+                    .filter_map(Self::parse_gpu_line)
                     .collect()
             }
             _ => {

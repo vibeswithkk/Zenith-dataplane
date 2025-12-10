@@ -9,8 +9,7 @@ pub mod synthetic;
 pub mod report;
 
 use clap::{Parser, Subcommand};
-use std::time::{Duration, Instant};
-use tracing::info;
+use std::time::Duration;
 
 /// Zenith Benchmark Harness
 #[derive(Parser)]

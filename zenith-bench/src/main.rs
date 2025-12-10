@@ -4,7 +4,6 @@ use clap::Parser;
 use zenith_bench::{Args, BenchmarkResult, Commands};
 use zenith_runtime_cpu::buffer::{RingBuffer, SpscRingBuffer};
 use std::time::Instant;
-use tracing::info;
 
 fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
@@ -84,7 +83,7 @@ fn run_ringbuffer_benchmarks(size: usize) -> anyhow::Result<()> {
     // Pop benchmark
     let mut timings = Vec::with_capacity(iterations);
     for _ in 0..iterations {
-        if let Err(_) = buffer.try_push(42) {
+        if buffer.try_push(42).is_err() {
             let _ = buffer.try_pop();
         }
         
@@ -102,7 +101,7 @@ fn run_ringbuffer_benchmarks(size: usize) -> anyhow::Result<()> {
 fn run_full_suite() -> anyhow::Result<Vec<BenchmarkResult>> {
     println!("\n🔥 Running Full Benchmark Suite...\n");
     
-    let mut results = Vec::new();
+    let results = Vec::new();
     
     // CPU benchmarks
     run_cpu_benchmarks(1000)?;

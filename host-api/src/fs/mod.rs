@@ -1,7 +1,7 @@
 /// Sandboxed Filesystem Module for WASM Plugins
 /// Provides restricted filesystem access with safety guarantees
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::fs;
 use std::io::{Read, Write};
 use std::sync::RwLock;
@@ -100,11 +100,9 @@ impl FsAPI {
             .map_err(|e| format!("Failed to read directory: {}", e))?;
         
         let mut names = Vec::new();
-        for entry in entries {
-            if let Ok(entry) = entry {
-                if let Some(name) = entry.file_name().to_str() {
-                    names.push(name.to_string());
-                }
+        for entry in entries.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                names.push(name.to_string());
             }
         }
         

@@ -294,15 +294,11 @@ impl Scheduler {
     fn schedule_cpu_job(&self, job: &Job) -> Option<SchedulingDecision> {
         let nodes = self.nodes.healthy_nodes();
         
-        if let Some(node) = nodes.first() {
-            Some(SchedulingDecision {
+        nodes.first().map(|node| SchedulingDecision {
                 job_id: job.id.to_string(),
                 allocations: HashMap::from([(node.id.clone(), vec![])]),
                 gang_allocated: false,
             })
-        } else {
-            None
-        }
     }
     
     /// Get job status

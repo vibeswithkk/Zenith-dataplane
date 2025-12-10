@@ -7,8 +7,10 @@ use chrono::{DateTime, Utc};
 
 /// Job state
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum JobState {
     /// Job is pending submission
+    #[default]
     Pending,
     /// Job is queued waiting for resources
     Queued,
@@ -28,11 +30,6 @@ pub enum JobState {
     Timeout,
 }
 
-impl Default for JobState {
-    fn default() -> Self {
-        Self::Pending
-    }
-}
 
 /// Resource requirements for a job
 #[derive(Debug, Clone, Serialize, Deserialize)]

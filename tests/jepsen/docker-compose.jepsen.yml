@@ -1,0 +1,78 @@
+version: "3.8"
+
+# Jepsen-style Distributed Testing Configuration for Zenith Dataplane
+# Usage: docker-compose -f docker-compose.jepsen.yml up -d
+
+services:
+  zenith-node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.jepsen
+    container_name: zenith-node-1
+    hostname: zenith-node-1
+    networks:
+      jepsen-net:
+        ipv4_address: 172.28.0.11
+    cap_add:
+      - NET_ADMIN  # Required for iptables network partition simulation
+    mem_limit: 256m
+    cpus: 0.3
+    environment:
+      - NODE_ID=1
+      - CLUSTER_NODES=172.28.0.11,172.28.0.12,172.28.0.13
+
+  zenith-node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.jepsen
+    container_name: zenith-node-2
+    hostname: zenith-node-2
+    networks:
+      jepsen-net:
+        ipv4_address: 172.28.0.12
+    cap_add:
+      - NET_ADMIN
+    mem_limit: 256m
+    cpus: 0.3
+    environment:
+      - NODE_ID=2
+      - CLUSTER_NODES=172.28.0.11,172.28.0.12,172.28.0.13
+
+  zenith-node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.jepsen
+    container_name: zenith-node-3
+    hostname: zenith-node-3
+    networks:
+      jepsen-net:
+        ipv4_address: 172.28.0.13
+    cap_add:
+      - NET_ADMIN
+    mem_limit: 256m
+    cpus: 0.3
+    environment:
+      - NODE_ID=3
+      - CLUSTER_NODES=172.28.0.11,172.28.0.12,172.28.0.13
+
+  jepsen-controller:
+    image: ubuntu:22.04
+    container_name: jepsen-controller
+    hostname: jepsen-controller
+    networks:
+      jepsen-net:
+        ipv4_address: 172.28.0.10
+    cap_add:
+      - NET_ADMIN
+    mem_limit: 512m
+    cpus: 0.5
+    command: sleep infinity
+    volumes:
+      - ./tests/jepsen:/jepsen
+
+networks:
+  jepsen-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

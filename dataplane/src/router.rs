@@ -16,7 +16,7 @@ impl EventRouter {
     
     pub fn add_route(&mut self, source_id: u32, sender: Sender<Event>) {
         self.routes.entry(source_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(sender);
     }
     

@@ -4,12 +4,11 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::fs;
 use parking_lot::RwLock;
 
 use crate::job::{Job, JobState};
-use crate::node::Node;
 use crate::{Error, Result};
 
 /// State store configuration
@@ -62,7 +61,7 @@ impl StateStore {
         // Create data directory if needed
         if !config.data_dir.exists() {
             fs::create_dir_all(&config.data_dir)
-                .map_err(|e| Error::Io(e))?;
+                .map_err(Error::Io)?;
         }
         
         let store = Self {
@@ -85,7 +84,7 @@ impl StateStore {
         // Load jobs
         if jobs_path.exists() {
             let data = fs::read_to_string(&jobs_path)
-                .map_err(|e| Error::Io(e))?;
+                .map_err(Error::Io)?;
             let jobs: HashMap<String, Job> = serde_json::from_str(&data)
                 .map_err(|e| Error::Serialization(e.to_string()))?;
             *self.jobs.write() = jobs;
@@ -94,7 +93,7 @@ impl StateStore {
         // Load nodes
         if nodes_path.exists() {
             let data = fs::read_to_string(&nodes_path)
-                .map_err(|e| Error::Io(e))?;
+                .map_err(Error::Io)?;
             let nodes: HashMap<String, NodeState> = serde_json::from_str(&data)
                 .map_err(|e| Error::Serialization(e.to_string()))?;
             *self.nodes.write() = nodes;
@@ -113,14 +112,14 @@ impl StateStore {
         let jobs_data = serde_json::to_string_pretty(&*jobs)
             .map_err(|e| Error::Serialization(e.to_string()))?;
         fs::write(&jobs_path, jobs_data)
-            .map_err(|e| Error::Io(e))?;
+            .map_err(Error::Io)?;
         
         // Save nodes
         let nodes = self.nodes.read();
         let nodes_data = serde_json::to_string_pretty(&*nodes)
             .map_err(|e| Error::Serialization(e.to_string()))?;
         fs::write(&nodes_path, nodes_data)
-            .map_err(|e| Error::Io(e))?;
+            .map_err(Error::Io)?;
         
         Ok(())
     }

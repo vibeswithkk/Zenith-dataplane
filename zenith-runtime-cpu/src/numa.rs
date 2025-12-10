@@ -196,9 +196,7 @@ impl NumaTopology {
     
     /// Extract KB value from a line like "Node 0 MemTotal:    12345678 kB"
     fn extract_kb_value(line: &str) -> Option<u64> {
-        line.split_whitespace()
-            .filter(|s| s.chars().all(|c| c.is_ascii_digit()))
-            .next()
+        line.split_whitespace().find(|s| s.chars().all(|c| c.is_ascii_digit()))
             .and_then(|s| s.parse().ok())
     }
     

@@ -96,7 +96,7 @@ impl Runtime {
                                 Ok(event) => {
                                     if let EventKind::Modify(_) | EventKind::Create(_) = event.kind {
                                         for path in event.paths {
-                                            if path.extension().map_or(false, |ext| ext == "wasm") {
+                                            if path.extension().is_some_and(|ext| ext == "wasm") {
                                                 info!("Change detected in {:?}. Reloading...", path);
                                                 if let Ok(bytes) = fs::read(&path) {
                                                     if let Err(e) = engine_ref.load_plugin(&bytes) {
@@ -137,7 +137,7 @@ impl Runtime {
         for entry in entries {
             let entry = entry?;
             let path = entry.path();
-            if path.is_file() && path.extension().map_or(false, |ext| ext == "wasm") {
+            if path.is_file() && path.extension().is_some_and(|ext| ext == "wasm") {
                 info!("Loading plugin: {:?}", path);
                 let bytes = fs::read(&path)?;
                 self.engine.load_plugin(&bytes)?;

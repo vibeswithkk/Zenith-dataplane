@@ -262,8 +262,7 @@ impl AsyncFile {
             path.as_ref(),
             nix::fcntl::OFlag::O_RDONLY | nix::fcntl::OFlag::O_DIRECT,
             nix::sys::stat::Mode::empty(),
-        ).map_err(|e| Error::Io(std::io::Error::new(
-            std::io::ErrorKind::Other,
+        ).map_err(|e| Error::Io(std::io::Error::other(
             e.to_string(),
         )))?;
         
@@ -276,8 +275,7 @@ impl AsyncFile {
             path.as_ref(),
             nix::fcntl::OFlag::O_WRONLY | nix::fcntl::OFlag::O_CREAT | nix::fcntl::OFlag::O_TRUNC | nix::fcntl::OFlag::O_DIRECT,
             nix::sys::stat::Mode::from_bits(0o644).unwrap(),
-        ).map_err(|e| Error::Io(std::io::Error::new(
-            std::io::ErrorKind::Other,
+        ).map_err(|e| Error::Io(std::io::Error::other(
             e.to_string(),
         )))?;
         

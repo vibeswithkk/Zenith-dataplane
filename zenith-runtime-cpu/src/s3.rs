@@ -3,7 +3,6 @@
 //! Support for reading data from AWS S3 and compatible object stores.
 //! Designed for high-throughput streaming with prefetch.
 
-use std::path::Path;
 
 /// S3 configuration
 #[derive(Debug, Clone)]

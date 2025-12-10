@@ -3,7 +3,6 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
-use anyhow::Result;
 
 /// Task priority levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

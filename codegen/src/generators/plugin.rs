@@ -1,8 +1,6 @@
 use anyhow::Result;
 use std::path::Path;
 use std::fs;
-use handlebars::Handlebars;
-use serde_json::json;
 
 pub fn generate(name: &str, output: &Path, plugin_type: &str) -> Result<()> {
     let plugin_dir = output.join(format!("plugin-{}", name));

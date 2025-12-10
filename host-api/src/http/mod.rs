@@ -2,7 +2,6 @@
 /// Provides HTTP request capabilities with sandboxing
 
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::Duration;
 
 static HTTP_CALL_COUNT: AtomicU64 = AtomicU64::new(0);
 

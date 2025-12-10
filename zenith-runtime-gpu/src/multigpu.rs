@@ -8,8 +8,6 @@
 //! - ⚠️ Requires community validation on multi-GPU systems
 //! - 📋 Feedback welcome: https://github.com/vibeswithkk/Zenith-dataplane/issues
 
-use std::sync::Arc;
-use std::collections::HashMap;
 
 /// Multi-GPU strategy
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -358,7 +358,7 @@ pub struct LaunchConfig {
 impl LaunchConfig {
     /// Create 1D launch configuration
     pub fn linear(n: usize, threads_per_block: u32) -> Self {
-        let blocks = ((n as u32) + threads_per_block - 1) / threads_per_block;
+        let blocks = (n as u32).div_ceil(threads_per_block);
         Self {
             grid: (blocks, 1, 1),
             block: (threads_per_block, 1, 1),
@@ -369,8 +369,8 @@ impl LaunchConfig {
     
     /// Create 2D launch configuration
     pub fn grid_2d(width: u32, height: u32, block_x: u32, block_y: u32) -> Self {
-        let grid_x = (width + block_x - 1) / block_x;
-        let grid_y = (height + block_y - 1) / block_y;
+        let grid_x = width.div_ceil(block_x);
+        let grid_y = height.div_ceil(block_y);
         Self {
             grid: (grid_x, grid_y, 1),
             block: (block_x, block_y, 1),

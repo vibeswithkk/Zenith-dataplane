@@ -3,11 +3,10 @@ use axum::{
     Router, Json, extract::{Path, State},
     http::StatusCode,
 };
-use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use tower_http::cors::CorsLayer;
-use tracing::{info, error};
+use tracing::info;
 use uuid::Uuid;
 
 mod models;
