@@ -21,12 +21,12 @@ Zenith is a high-performance data loading engine built in Rust for AI/ML workloa
 
 ## Prerequisites
 
-| Requirement | Version | Purpose |
-|-------------|---------|---------|
-| Rust | 1.75+ | Core engine compilation |
-| Python | 3.10+ | SDK usage |
-| Cargo | Latest | Rust package manager |
-| (Optional) CUDA | 11.8+ | GPU acceleration |
+| Requirement     | Version   | Purpose                 |
+|-----------------|-----------|-------------------------|
+| Rust            | 1.75+     | Core engine compilation |
+| Python          | 3.10+     | SDK usage               |
+| Cargo           | Latest    | Rust package manager    |
+| (Optional) CUDA | 11.8+     | GPU acceleration        |
 
 ---
 
@@ -118,7 +118,7 @@ for epoch in range(10):
                         ▼
 ┌─────────────────────────────────────────────────┐
 │               Python SDK Layer                  │
-│    zenith.load() / zenith.DataLoader           │
+│    zenith.load() / zenith.DataLoader            │
 └─────────────────────────────────────────────────┘
                         │
                         ▼
@@ -139,12 +139,12 @@ for epoch in range(10):
 
 ### Key Concepts
 
-| Concept | Description |
-|---------|-------------|
-| **Ring Buffer** | Lock-free circular buffer for event streaming |
-| **Zero-Copy** | Data accessed in-place without copying |
-| **Arrow IPC** | Efficient binary columnar format |
-| **WASM Plugins** | Sandboxed preprocessing in WebAssembly |
+| Concept          | Description                                     |
+|------------------|-------------------------------------------------|
+| **Ring Buffer**  | Lock-free circular buffer for event streaming   |
+| **Zero-Copy**    | Data accessed in-place without copying          |
+| **Arrow IPC**    | Efficient binary columnar format                |
+| **WASM Plugins** | Sandboxed preprocessing in WebAssembly          |
 
 ---
 
@@ -240,11 +240,11 @@ python3 baselines/pytorch_baseline.py
 
 ### Expected Results
 
-| Metric | Baseline | Zenith | Improvement |
-|--------|----------|--------|-------------|
-| Throughput | 320K/s | 1.35M/s | **4.2x** |
-| Latency p50 | 0.050ms | 0.044ms | 1.1x |
-| Latency p99 | 0.134ms | 0.074ms | 1.8x |
+| Metric      | Baseline | Zenith  | Improvement |
+|-------------|----------|---------|-------------|
+| Throughput  | 320K/s   | 1.35M/s | **4.2x**    |
+| Latency p50 | 0.050ms  | 0.044ms | 1.1x        |
+| Latency p99 | 0.134ms  | 0.074ms | 1.8x        |
 
 ---
 
@@ -288,12 +288,12 @@ curl http://localhost:8080/api/v1/cluster/status
 
 ## Step 7: Supported Data Formats
 
-| Format | Extension | Zero-Copy | Notes |
-|--------|-----------|-----------|-------|
-| Apache Parquet | `.parquet` | Partial | Columnar, compressed |
-| Arrow IPC | `.arrow`, `.ipc` | Full | Best performance |
-| CSV | `.csv` | No | Human readable |
-| S3 Object | `s3://...` | Streaming | Cloud storage |
+| Format        | Extension | Zero-Copy | Notes |
+|---------------|-----------|-----------|-------|
+| Apache Parquet| `.parquet`| Partial   | Columnar, compressed |
+| Arrow IPC     | `.arrow`, `.ipc` | Full | Best performance |
+| CSV           | `.csv`           | No   | Human readable   |
+| S3 Object     | `s3://...`       | Streaming | Cloud storage |
 
 ### Loading Different Formats
 
@@ -319,12 +319,12 @@ data = zenith.load("s3://bucket/key.parquet")
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| `Zenith core library not found` | Run `cargo build --release` first |
-| `No module named zenith` | Activate venv, `pip install -e sdk-python` |
-| `io_uring not supported` | Use Linux 5.1+, or Zenith will fallback |
-| `WASM plugin failed to load` | Check WASM target: `wasm32-wasip1` |
+| Issue                               | Solution                                    |
+|-------------------------------------|---------------------------------------------|
+| `Zenith core library not found`     | Run `cargo build --release` first           |        
+| `No module named zenith`            | Activate venv, `pip install -e sdk-python`  |
+| `io_uring not supported`            | Use Linux 5.1+, or Zenith will fallback     |
+| `WASM plugin failed to load`        | Check WASM target: `wasm32-wasip1`          |
 
 ### Getting Help
 

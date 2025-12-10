@@ -171,13 +171,13 @@ Wahyu Ardiansyah
 
 ### Performance Targets
 
-| Configuration | Throughput | Speedup |
-|--------------|------------|---------|
-| CPU (baseline) | 28K samples/sec | 1x |
-| GPU FP32 | 500K samples/sec | 18x |
-| GPU FP16 | 1M samples/sec | 36x |
-| TensorRT FP16 | 2-5M samples/sec | 100x |
-| TensorRT INT8 | 5-10M samples/sec | 350x |
+| Configuration | Throughput       | Speedup |
+|---------------|------------------|---------|
+| CPU (baseline)| 28K samples/sec  | 1x      |
+| GPU FP32      | 500K samples/sec | 18x     |
+| GPU FP16      | 1M samples/sec   | 36x     |
+| TensorRT FP16 | 2-5M samples/sec | 100x    |
+| TensorRT INT8 | 5-10M samples/sec| 350x    |
 
 ### Testing
 

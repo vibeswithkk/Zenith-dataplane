@@ -157,12 +157,12 @@ cargo test -p zenith-runtime-gpu -- --nocapture
 
 ### 5. io_uring Async I/O
 
-| Feature | Current Status | Requirements |
-|---------|----------------|--------------|
-| **Basic Operations**   | [OK] Implemented     | Linux kernel 5.1+ |
-| **Submission Queue**   | [OK] Mutex-protected | Modern Linux |
-| **Completion Queue**   | [OK] Implemented     | io_uring support |
-| **Registered Buffers** | Planned |            Advanced use case |
+| Feature                  | Current Status       | Requirements      |
+|--------------------------|----------------------|-------------------|
+| **Basic Operations**     | [OK] Implemented     | Linux kernel 5.1+ |
+| **Submission Queue**     | [OK] Mutex-protected | Modern Linux      |
+| **Completion Queue**     | [OK] Implemented     | io_uring support  |
+| **Registered Buffers**   | Planned              | Advanced use case |
 
 **How to test:**
 ```bash
@@ -181,30 +181,30 @@ These features are planned or have placeholder implementations:
 
 ### High Priority (Phase 4)
 
-| Feature | Description | Effort | Sponsor Opportunity |
-|---------|-------------|--------|---------------------|
-| **CUDA Kernel Integration** | Native CUDA kernel management | 2-3 weeks | $5,000 |
-| **NCCL Collective Operations** | All-reduce, broadcast, etc. | 2-3 weeks | $5,000 |
-| **Node Agent -> Scheduler gRPC** | Real heartbeat/registration | 1 week | $2,000 |
-| **Multi-node E2E Testing** | Distributed cluster testing | 1 week | $2,000 |
+| Feature                          | Description                   | Effort    | Sponsor Opportunity|
+|----------------------------------|-------------------------------|-----------|--------------------|
+| **CUDA Kernel Integration**      | Native CUDA kernel management | 2-3 weeks | $5,000             |
+| **NCCL Collective Operations**   | All-reduce, broadcast, etc.   | 2-3 weeks | $5,000             |
+| **Node Agent -> Scheduler gRPC** | Real heartbeat/registration   | 1 week    | $2,000             |
+| **Multi-node E2E Testing**       | Distributed cluster testing   | 1 week    | $2,000             |
 
 ### Medium Priority (Phase 5)
 
-| Feature | Description | Effort | Sponsor Opportunity |
-|---------|-------------|--------|---------------------|
-| **RDMA/InfiniBand Support** | High-speed networking | 3-4 weeks | $8,000 |
-| **NVMe-oF Integration** | Remote NVMe storage | 2-3 weeks | $5,000 |
-| **Triton/TVM Kernels** | ML compiler integration | 3-4 weeks | $6,000 |
-| **Dynamic Precision Switching** | FP32/FP16/BF16/FP8 | 2 weeks | $4,000 |
+| Feature                         | Description                 | Effort          | Sponsor Opportunity |
+|---------------------------------|-----------------------------|-----------------|---------------------|
+| **RDMA/InfiniBand Support**     | High-speed networking       | 3-4 weeks       | $8,000              |
+| **NVMe-oF Integration**         | Remote NVMe storage         | 2-3 weeks       | $5,000              |
+| **Triton/TVM Kernels**          | ML compiler integration     | 3-4 weeks       | $6,000              |
+| **Dynamic Precision Switching** | FP32/FP16/BF16/FP8          | 2 weeks         | $4,000              |
 
 ### Future (Phase 6+)
 
-| Feature | Description | Effort | Sponsor Opportunity |
-|---------|-------------|--------|---------------------|
-| **Custom Kubernetes Operator** | CRD-based deployment | 4-6 weeks | $15,000 |
-| **MLOps Dashboard** | Web UI for monitoring | 4-6 weeks | $12,000 |
-| **Hugging Face Integration** | Dataset/model hub | 2-3 weeks | $5,000 |
-| **AWS/GCP/Azure Adapters** | Cloud provider support | 4-6 weeks | $10,000 |
+| Feature                         | Description                 | Effort          | Sponsor Opportunity |
+|---------------------------------|-----------------------------|-----------------|---------------------|
+| **Custom Kubernetes Operator**  | CRD-based deployment        | 4-6 weeks       | $15,000             |
+| **MLOps Dashboard**             | Web UI for monitoring       | 4-6 weeks       | $12,000             |
+| **Hugging Face Integration**    | Dataset/model hub           | 2-3 weeks       | $5,000              |
+| **AWS/GCP/Azure Adapters**      | Cloud provider support      | 4-6 weeks       | $10,000             |
 
 ---
 
@@ -282,13 +282,13 @@ We welcome contributions! Here's how you can help:
 
 ### Priority Areas
 
-| Area | Difficulty | Impact |
-|------|------------|--------|
-| Unit tests for uncovered code | Easy | High |
-| Documentation improvements | Easy | Medium |
-| Kubernetes testing | Medium | High |
-| GPU feature implementation | Hard | Very High |
-| RDMA/InfiniBand support | Hard | Very High |
+| Area                          | Difficulty | Impact    |
+|-------------------------------|------------|-----------|
+| Unit tests for uncovered code | Easy       | High      |
+| Documentation improvements    | Easy       | Medium    |
+| Kubernetes testing            | Medium     | High      |
+| GPU feature implementation    | Hard       | Very High |
+| RDMA/InfiniBand support       | Hard       | Very High |
 
 ### Testing Help Needed
 
@@ -311,23 +311,24 @@ We especially need help testing on:
 
 ### Sponsorship Tiers
 
-| Tier | Amount | Benefits |
-|------|--------|----------|
-| **Bronze** | $500/month | Logo on README, priority support |
-| **Silver** | $2,000/month | Bronze + quarterly roadmap input |
-| **Gold** | $5,000/month | Silver + dedicated Slack channel |
-| **Platinum** | $10,000/month | Gold + feature prioritization |
-| **Enterprise** | Custom | Full partnership, custom features |
+| Tier           | Amount        | Benefits                          |
+|----------------|---------------|-----------------------------------|
+| **Bronze**     | $500/month    | Logo on README, priority support  |
+| **Silver**     | $2,000/month  | Bronze + quarterly roadmap input  |
+| **Gold**       | $5,000/month  | Silver + dedicated Slack channel  |
+| **Platinum**   | $10,000/month | Gold + feature prioritization     |
+| **Enterprise** | Custom        | Full partnership, custom features |
 
 ### One-Time Feature Sponsorship
 
-| Feature | Sponsorship Amount | Estimated Delivery |
-|---------|--------------------|--------------------|
-| CUDA Kernel Integration | $5,000 | 3 weeks |
-| NCCL Collectives | $5,000 | 3 weeks |
-| RDMA Support | $8,000 | 4 weeks |
-| Kubernetes Operator | $15,000 | 6 weeks |
-| Custom Feature | Contact us | TBD |
+
+| Feature                 | Sponsorship Amount | Estimated Delivery |
+|-------------------------|--------------------|--------------------|
+| CUDA Kernel Integration | $5,000             | 3 weeks            |
+| NCCL Collectives        | $5,000             | 3 weeks            |
+| RDMA Support            | $8,000             | 4 weeks            |
+| Kubernetes Operator     | $15,000            | 6 weeks            |
+| Custom Feature          | Contact us         | TBD                |
 
 ### Current Sponsors
 
