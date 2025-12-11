@@ -58,7 +58,7 @@ pub struct BenchmarkResult {
 
 impl BenchmarkResult {
  /// Calculate from timings
- pub fn from_timings(name: &str, timings: &mut Vec<Duration>) -> Self {
+ pub fn from_timings(name: &str, timings: &mut [Duration]) -> Self {
  timings.sort();
  
  let iterations = timings.len();

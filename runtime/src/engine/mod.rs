@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use tokio::sync::RwLock;
 
 /// Plugin registry entry
+#[allow(dead_code)]
 struct PluginEntry {
     id: String,
     vm: VM,
@@ -28,6 +29,7 @@ pub struct RuntimeEngine {
     plugins: Arc<RwLock<HashMap<String, PluginEntry>>>,
     scheduler: Arc<Scheduler>,
     sandbox: Arc<Sandbox>,
+    #[allow(dead_code)]
     host_calls: Arc<HostCallInterface>,
 }
 

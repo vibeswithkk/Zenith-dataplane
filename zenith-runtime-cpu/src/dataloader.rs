@@ -356,6 +356,10 @@ impl std::error::Error for DataLoaderError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrow::datatypes::{DataType, Field};
+    use arrow::array::Int32Array;
+    
+    // ===================== FileFormat Tests =====================
     
     #[test]
     fn test_file_format_detection() {
@@ -366,18 +370,329 @@ mod tests {
     }
     
     #[test]
+    fn test_file_format_feather() {
+        // 'ipc' is not supported, but 'feather' is an alias for ArrowIpc
+        assert_eq!(FileFormat::from_extension("data.feather"), FileFormat::ArrowIpc);
+    }
+    
+    #[test]
+    fn test_file_format_jsonl() {
+        assert_eq!(FileFormat::from_extension("data.jsonl"), FileFormat::JsonLines);
+        assert_eq!(FileFormat::from_extension("data.ndjson"), FileFormat::JsonLines);
+    }
+    
+    #[test]
+    fn test_file_format_uppercase() {
+        // Extensions are case-sensitive, uppercase should be unknown
+        assert_eq!(FileFormat::from_extension("data.PARQUET"), FileFormat::Unknown);
+    }
+    
+    #[test]
+    fn test_file_format_no_extension() {
+        assert_eq!(FileFormat::from_extension("data"), FileFormat::Unknown);
+    }
+    
+    #[test]
+    fn test_file_format_clone_copy() {
+        let format = FileFormat::Parquet;
+        let cloned = format.clone();
+        let copied = format;
+        assert_eq!(format, cloned);
+        assert_eq!(format, copied);
+    }
+    
+    #[test]
+    fn test_file_format_debug() {
+        let format = FileFormat::Parquet;
+        let debug_str = format!("{:?}", format);
+        assert!(debug_str.contains("Parquet"));
+    }
+    
+    // ===================== LoaderConfig Tests =====================
+    
+    #[test]
     fn test_loader_config_default() {
         let config = LoaderConfig::default();
         assert_eq!(config.batch_size, 1024);
         assert_eq!(config.num_workers, 4);
+        assert_eq!(config.prefetch_count, 4);
+        assert!(config.memory_map);
+        assert_eq!(config.io_buffer_size, 8 * 1024 * 1024);
     }
     
     #[test]
-    fn test_data_source_from_path() {
+    fn test_loader_config_custom() {
+        let config = LoaderConfig {
+            batch_size: 2048,
+            num_workers: 8,
+            prefetch_count: 8,
+            memory_map: false,
+            io_buffer_size: 4 * 1024 * 1024,
+        };
+        assert_eq!(config.batch_size, 2048);
+        assert_eq!(config.num_workers, 8);
+        assert!(!config.memory_map);
+    }
+    
+    #[test]
+    fn test_loader_config_clone() {
+        let config = LoaderConfig::default();
+        let cloned = config.clone();
+        assert_eq!(config.batch_size, cloned.batch_size);
+        assert_eq!(config.num_workers, cloned.num_workers);
+    }
+    
+    #[test]
+    fn test_loader_config_debug() {
+        let config = LoaderConfig::default();
+        let debug_str = format!("{:?}", config);
+        assert!(debug_str.contains("LoaderConfig"));
+        assert!(debug_str.contains("batch_size"));
+    }
+    
+    // ===================== DataSource Tests =====================
+    
+    #[test]
+    fn test_data_source_from_path_file() {
         let source = DataSource::from_path("/tmp/test.parquet");
         match source {
             DataSource::File(p) => assert!(p.contains("test.parquet")),
             _ => panic!("Expected File variant"),
         }
     }
+    
+    #[test]
+    fn test_data_source_directory() {
+        // DataSource::Directory variant can be created directly
+        let source = DataSource::Directory("/tmp/data".to_string());
+        match source {
+            DataSource::Directory(p) => assert!(p.contains("data")),
+            _ => panic!("Expected Directory variant"),
+        }
+    }
+    
+    #[test]
+    fn test_data_source_memory() {
+        let data = vec![1u8, 2, 3, 4, 5];
+        let source = DataSource::Memory(data.clone());
+        match source {
+            DataSource::Memory(d) => assert_eq!(d.len(), 5),
+            _ => panic!("Expected Memory variant"),
+        }
+    }
+    
+    #[test]
+    fn test_data_source_clone() {
+        let source = DataSource::File("test.parquet".to_string());
+        let cloned = source.clone();
+        match (source, cloned) {
+            (DataSource::File(a), DataSource::File(b)) => assert_eq!(a, b),
+            _ => panic!("Clone mismatch"),
+        }
+    }
+    
+    #[test]
+    fn test_data_source_debug() {
+        let source = DataSource::File("test.parquet".to_string());
+        let debug_str = format!("{:?}", source);
+        assert!(debug_str.contains("File"));
+        assert!(debug_str.contains("test.parquet"));
+    }
+    
+    // ===================== DataLoader Tests =====================
+    
+    #[test]
+    fn test_data_loader_creation() {
+        let source = DataSource::File("test.parquet".to_string());
+        let config = LoaderConfig::default();
+        let loader = DataLoader::new(source, config);
+        
+        assert_eq!(loader.config().batch_size, 1024);
+    }
+    
+    #[test]
+    fn test_data_loader_with_defaults() {
+        let loader = DataLoader::with_defaults("/tmp/test.parquet");
+        assert_eq!(loader.config().batch_size, 1024);
+    }
+    
+    #[test]
+    fn test_data_loader_config_access() {
+        let config = LoaderConfig {
+            batch_size: 512,
+            num_workers: 2,
+            prefetch_count: 1,
+            memory_map: false,
+            io_buffer_size: 1024 * 1024,
+        };
+        let loader = DataLoader::new(DataSource::File("test.csv".to_string()), config);
+        
+        assert_eq!(loader.config().batch_size, 512);
+        assert_eq!(loader.config().num_workers, 2);
+    }
+    
+    #[test]
+    fn test_data_loader_clear_cache() {
+        let loader = DataLoader::with_defaults("/tmp/test.parquet");
+        // Should not panic even when cache is empty
+        loader.clear_cache();
+    }
+    
+    #[test]
+    fn test_data_loader_schema_before_load() {
+        let loader = DataLoader::with_defaults("/tmp/test.parquet");
+        // Schema should be None before loading
+        assert!(loader.schema().is_none());
+    }
+    
+    #[test]
+    fn test_data_loader_load_nonexistent_file() {
+        let loader = DataLoader::with_defaults("/nonexistent/path/data.parquet");
+        let result = loader.load();
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn test_data_loader_load_unsupported_format() {
+        let loader = DataLoader::with_defaults("/tmp/data.xyz");
+        let result = loader.load();
+        assert!(result.is_err());
+    }
+    
+    // ===================== BatchIterator Tests =====================
+    
+    fn create_test_schema() -> Arc<Schema> {
+        Arc::new(Schema::new(vec![
+            Field::new("id", DataType::Int32, false),
+        ]))
+    }
+    
+    fn create_test_batch(schema: &Arc<Schema>, values: Vec<i32>) -> RecordBatch {
+        let array = Int32Array::from(values);
+        RecordBatch::try_new(schema.clone(), vec![Arc::new(array)]).unwrap()
+    }
+    
+    #[test]
+    fn test_batch_iterator_creation() {
+        let schema = create_test_schema();
+        let batches = vec![
+            create_test_batch(&schema, vec![1, 2, 3]),
+            create_test_batch(&schema, vec![4, 5, 6]),
+        ];
+        
+        let iter = BatchIterator::new(schema.clone(), batches);
+        assert_eq!(iter.num_batches(), 2);
+        assert_eq!(iter.total_rows(), 6);
+    }
+    
+    #[test]
+    fn test_batch_iterator_schema() {
+        let schema = create_test_schema();
+        let batches = vec![create_test_batch(&schema, vec![1, 2, 3])];
+        
+        let iter = BatchIterator::new(schema.clone(), batches);
+        let iter_schema = iter.schema();
+        
+        assert_eq!(iter_schema.fields().len(), 1);
+        assert_eq!(iter_schema.field(0).name(), "id");
+    }
+    
+    #[test]
+    fn test_batch_iterator_empty() {
+        let schema = create_test_schema();
+        let iter = BatchIterator::new(schema, vec![]);
+        
+        assert_eq!(iter.num_batches(), 0);
+        assert_eq!(iter.total_rows(), 0);
+    }
+    
+    #[test]
+    fn test_batch_iterator_iteration() {
+        let schema = create_test_schema();
+        let batches = vec![
+            create_test_batch(&schema, vec![1, 2]),
+            create_test_batch(&schema, vec![3, 4]),
+        ];
+        
+        let mut iter = BatchIterator::new(schema, batches);
+        
+        let first = iter.next();
+        assert!(first.is_some());
+        assert_eq!(first.unwrap().num_rows(), 2);
+        
+        let second = iter.next();
+        assert!(second.is_some());
+        assert_eq!(second.unwrap().num_rows(), 2);
+        
+        let third = iter.next();
+        assert!(third.is_none());
+    }
+    
+    #[test]
+    fn test_batch_iterator_reset() {
+        let schema = create_test_schema();
+        let batches = vec![create_test_batch(&schema, vec![1, 2, 3])];
+        
+        let mut iter = BatchIterator::new(schema, batches);
+        
+        // Consume the iterator
+        let _ = iter.next();
+        assert!(iter.next().is_none());
+        
+        // Reset and iterate again
+        iter.reset();
+        assert!(iter.next().is_some());
+    }
+    
+    // ===================== DataLoaderError Tests =====================
+    
+    #[test]
+    fn test_error_io() {
+        let err = DataLoaderError::Io("file not found".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("I/O error"));
+        assert!(msg.contains("file not found"));
+    }
+    
+    #[test]
+    fn test_error_parse() {
+        let err = DataLoaderError::Parse("invalid format".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Parse error"));
+    }
+    
+    #[test]
+    fn test_error_unsupported_format() {
+        let err = DataLoaderError::UnsupportedFormat(".xyz".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Unsupported format"));
+    }
+    
+    #[test]
+    fn test_error_empty() {
+        let err = DataLoaderError::Empty("no data".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Empty source"));
+    }
+    
+    #[test]
+    fn test_error_config() {
+        let err = DataLoaderError::Config("invalid batch size".to_string());
+        let msg = format!("{}", err);
+        assert!(msg.contains("Configuration error"));
+    }
+    
+    #[test]
+    fn test_error_debug() {
+        let err = DataLoaderError::Io("test".to_string());
+        let debug_str = format!("{:?}", err);
+        assert!(debug_str.contains("Io"));
+    }
+    
+    #[test]
+    fn test_error_is_std_error() {
+        let err: Box<dyn std::error::Error> = Box::new(DataLoaderError::Io("test".to_string()));
+        assert!(err.to_string().contains("I/O error"));
+    }
 }
+
