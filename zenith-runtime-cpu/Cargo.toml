@@ -54,7 +54,7 @@ axum.workspace = true
 ort = { version = "2.0.0-rc.10", optional = true }
 
 # Data loading
-arrow = { version = "53", features = ["csv", "ipc"] }
+arrow = { version = "57", features = ["csv", "ipc"] }
 parquet = { version = "53", features = ["arrow"] }
 
 [dev-dependencies]
