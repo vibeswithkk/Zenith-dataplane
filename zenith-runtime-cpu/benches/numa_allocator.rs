@@ -25,6 +25,7 @@ fn bench_numa_topology(c: &mut Criterion) {
 
 fn bench_allocator(c: &mut Criterion) {
     use zenith_runtime_cpu::allocator::NumaAllocator;
+    use std::alloc::Layout;
     
     let mut group = c.benchmark_group("allocator");
     
@@ -35,11 +36,14 @@ fn bench_allocator(c: &mut Criterion) {
             BenchmarkId::new("allocate_free", size),
             size,
             |b, &size| {
-                let allocator = NumaAllocator::new();
+                let allocator = NumaAllocator::with_defaults();
+                let layout = Layout::from_size_align(size, 64).unwrap();
                 
                 b.iter(|| {
-                    if let Ok(ptr) = allocator.allocate(size, 64) {
-                        unsafe { allocator.deallocate(ptr, size, 64) };
+                    unsafe {
+                        if let Ok(ptr) = allocator.allocate(layout) {
+                            allocator.deallocate(ptr, layout);
+                        }
                     }
                 });
             },

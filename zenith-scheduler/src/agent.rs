@@ -394,8 +394,8 @@ mod tests {
     fn test_discover_gpus() {
         // On systems without nvidia-smi, this should return empty
         let gpus = NodeAgent::discover_gpus();
-        // Just verify it doesn't panic
-        assert!(gpus.len() >= 0);  // Always true, but verifies return type
+        // Verify return type is correct (empty vector is valid on non-GPU systems)
+        let _ = gpus.len();  // Ensures gpus is a valid Vec
     }
     
     // ===================== Node Agent Tests =====================
