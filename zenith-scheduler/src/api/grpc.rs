@@ -87,6 +87,7 @@ impl SchedulerService {
     }
     
     /// Submit a job
+    #[allow(clippy::result_large_err)]
     pub fn submit_job(&self, request: SubmitJobRequest) -> Result<SubmitJobResponse, Status> {
         let descriptor = JobDescriptor {
             name: request.name,
@@ -124,6 +125,7 @@ impl SchedulerService {
     }
     
     /// Get job status
+    #[allow(clippy::result_large_err)]
     pub fn get_job_status(&self, request: GetJobStatusRequest) -> Result<GetJobStatusResponse, Status> {
         match self.scheduler.get_job(&request.job_id) {
             Some(job) => Ok(GetJobStatusResponse {
@@ -137,6 +139,7 @@ impl SchedulerService {
     }
     
     /// Cancel a job
+    #[allow(clippy::result_large_err)]
     pub fn cancel_job(&self, request: CancelJobRequest) -> Result<CancelJobResponse, Status> {
         match self.scheduler.cancel(&request.job_id, &request.reason) {
             Ok(()) => Ok(CancelJobResponse {
