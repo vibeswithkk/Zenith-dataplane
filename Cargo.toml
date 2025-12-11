@@ -85,7 +85,7 @@ nix = { version = "0.29", features = ["fs", "mman", "sched", "signal"] }
 sysinfo = "0.34"
 
 # Testing
-criterion = "0.5"
+criterion = "0.8"
 proptest = "1.0"
 tempfile = "3.0"
 
