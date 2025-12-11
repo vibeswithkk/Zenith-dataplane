@@ -308,12 +308,158 @@ impl Drop for AsyncFile {
 mod tests {
     use super::*;
     
+    // ===================== UringConfig Tests =====================
+    
     #[test]
-    fn test_uring_config() {
+    fn test_uring_config_default() {
         let config = UringConfig::default();
         assert_eq!(config.sq_entries, 4096);
         assert!(!config.sq_poll);
+        assert_eq!(config.sq_poll_idle_ms, 1000);
+        assert!(!config.io_poll);
+        assert!(!config.registered_buffers);
+        assert_eq!(config.num_buffers, 64);
+        assert_eq!(config.buffer_size, 64 * 1024);
     }
+    
+    #[test]
+    fn test_uring_config_custom() {
+        let config = UringConfig {
+            sq_entries: 1024,
+            sq_poll: true,
+            sq_poll_idle_ms: 500,
+            io_poll: true,
+            registered_buffers: true,
+            num_buffers: 128,
+            buffer_size: 128 * 1024,
+        };
+        
+        assert_eq!(config.sq_entries, 1024);
+        assert!(config.sq_poll);
+        assert_eq!(config.sq_poll_idle_ms, 500);
+        assert!(config.io_poll);
+        assert!(config.registered_buffers);
+        assert_eq!(config.num_buffers, 128);
+        assert_eq!(config.buffer_size, 128 * 1024);
+    }
+    
+    #[test]
+    fn test_uring_config_clone() {
+        let config = UringConfig::default();
+        let cloned = config.clone();
+        
+        assert_eq!(config.sq_entries, cloned.sq_entries);
+        assert_eq!(config.sq_poll, cloned.sq_poll);
+        assert_eq!(config.num_buffers, cloned.num_buffers);
+    }
+    
+    #[test]
+    fn test_uring_config_debug() {
+        let config = UringConfig::default();
+        let debug_str = format!("{:?}", config);
+        
+        assert!(debug_str.contains("UringConfig"));
+        assert!(debug_str.contains("sq_entries"));
+        assert!(debug_str.contains("4096"));
+    }
+    
+    // ===================== IoOp Tests =====================
+    
+    #[test]
+    fn test_io_op_variants() {
+        let read = IoOp::Read;
+        let write = IoOp::Write;
+        let fsync = IoOp::Fsync;
+        let close = IoOp::Close;
+        
+        // Test Debug trait
+        assert!(format!("{:?}", read).contains("Read"));
+        assert!(format!("{:?}", write).contains("Write"));
+        assert!(format!("{:?}", fsync).contains("Fsync"));
+        assert!(format!("{:?}", close).contains("Close"));
+    }
+    
+    #[test]
+    fn test_io_op_clone() {
+        let op = IoOp::Read;
+        let cloned = op.clone();
+        
+        match (op, cloned) {
+            (IoOp::Read, IoOp::Read) => {}
+            _ => panic!("Clone mismatch"),
+        }
+    }
+    
+    #[test]
+    fn test_io_op_copy() {
+        let op = IoOp::Write;
+        let copied = op; // Copy trait
+        
+        match (op, copied) {
+            (IoOp::Write, IoOp::Write) => {}
+            _ => panic!("Copy mismatch"),
+        }
+    }
+    
+    // ===================== Completion Tests =====================
+    
+    #[test]
+    fn test_completion_creation() {
+        let completion = Completion {
+            user_data: 42,
+            result: 1024,
+            op: IoOp::Read,
+        };
+        
+        assert_eq!(completion.user_data, 42);
+        assert_eq!(completion.result, 1024);
+    }
+    
+    #[test]
+    fn test_completion_debug() {
+        let completion = Completion {
+            user_data: 1,
+            result: 256,
+            op: IoOp::Write,
+        };
+        
+        let debug_str = format!("{:?}", completion);
+        assert!(debug_str.contains("Completion"));
+        assert!(debug_str.contains("user_data"));
+        assert!(debug_str.contains("1"));
+        assert!(debug_str.contains("result"));
+        assert!(debug_str.contains("256"));
+    }
+    
+    #[test]
+    fn test_completion_negative_result() {
+        // io_uring can return negative results (errors)
+        let completion = Completion {
+            user_data: 100,
+            result: -22, // EINVAL
+            op: IoOp::Read,
+        };
+        
+        assert_eq!(completion.result, -22);
+    }
+    
+    #[test]
+    fn test_completion_all_ops() {
+        let ops = [IoOp::Read, IoOp::Write, IoOp::Fsync, IoOp::Close];
+        
+        for (i, op) in ops.iter().enumerate() {
+            let completion = Completion {
+                user_data: i as u64,
+                result: i as i32 * 100,
+                op: *op,
+            };
+            
+            assert_eq!(completion.user_data, i as u64);
+            assert_eq!(completion.result, i as i32 * 100);
+        }
+    }
+    
+    // ===================== UringEngine Tests =====================
     
     #[test]
     fn test_uring_creation() {
@@ -330,6 +476,77 @@ mod tests {
             Err(_) => {
                 // io_uring may not be available in test environment
             }
+        }
+    }
+    
+    #[test]
+    fn test_uring_engine_with_sqpoll() {
+        // SQPOLL requires root, so this may fail
+        let config = UringConfig {
+            sq_entries: 32,
+            sq_poll: true,
+            sq_poll_idle_ms: 100,
+            ..Default::default()
+        };
+        
+        // This will likely fail without root, but tests the code path
+        let _ = UringEngine::new(config);
+    }
+    
+    #[test]
+    fn test_uring_engine_with_iopoll() {
+        let config = UringConfig {
+            sq_entries: 32,
+            io_poll: true,
+            ..Default::default()
+        };
+        
+        // May fail without io_poll support
+        let _ = UringEngine::new(config);
+    }
+    
+    #[test]
+    fn test_uring_engine_next_id() {
+        let config = UringConfig {
+            sq_entries: 32,
+            ..Default::default()
+        };
+        
+        if let Ok(engine) = UringEngine::new(config) {
+            // next_id should increment
+            let id1 = engine.next_id();
+            let id2 = engine.next_id();
+            let id3 = engine.next_id();
+            
+            assert!(id2 > id1);
+            assert!(id3 > id2);
+        }
+    }
+    
+    #[test]
+    fn test_uring_engine_pending_count_initial() {
+        let config = UringConfig {
+            sq_entries: 32,
+            ..Default::default()
+        };
+        
+        if let Ok(engine) = UringEngine::new(config) {
+            assert_eq!(engine.pending_count(), 0, 
+                "New engine should have 0 pending operations");
+        }
+    }
+    
+    #[test]
+    fn test_uring_engine_completions_empty() {
+        let config = UringConfig {
+            sq_entries: 32,
+            ..Default::default()
+        };
+        
+        if let Ok(engine) = UringEngine::new(config) {
+            let completions = engine.completions();
+            assert!(completions.is_empty(), 
+                "New engine should have no completions");
         }
     }
 }
