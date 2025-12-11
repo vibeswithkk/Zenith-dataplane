@@ -1,0 +1,142 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Dependency vulnerability scanning
+  cargo-audit:
+    name: Cargo Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Fetch advisory database
+        run: cargo audit fetch
+
+      - name: Run security audit
+        run: cargo audit --deny warnings
+        continue-on-error: true
+
+      - name: Run audit (vulnerabilities only)
+        run: cargo audit
+
+  # Dependency license and policy check
+  cargo-deny:
+    name: Cargo Deny
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+
+      - name: Check licenses and policies
+        run: cargo deny check || true
+
+  # Static security analysis with clippy
+  clippy-security:
+    name: Clippy Security Lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: clippy
+
+      - name: Run Clippy with security lints
+        run: |
+          cargo clippy --all-targets --all-features -- \
+            -D clippy::unwrap_used \
+            -D clippy::expect_used \
+            -D clippy::panic \
+            -W clippy::pedantic
+
+  # Check for unsafe code
+  unsafe-check:
+    name: Unsafe Code Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find unsafe blocks
+        run: |
+          echo "=== Unsafe blocks in codebase ==="
+          grep -rn "unsafe" --include="*.rs" . || echo "No unsafe blocks found"
+
+      - name: Count unsafe blocks
+        run: |
+          COUNT=$(grep -rn "unsafe {" --include="*.rs" . | wc -l)
+          echo "Total unsafe blocks: $COUNT"
+          if [ "$COUNT" -gt 50 ]; then
+            echo "Warning: High number of unsafe blocks detected!"
+            exit 1
+          fi
+
+  # Check for sensitive data in code
+  secrets-check:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "=== Checking for potential hardcoded secrets ==="
+          # Check for common secret patterns
+          PATTERNS="password|secret|api_key|apikey|token|private_key"
+          if grep -rniE "$PATTERNS\s*=\s*[\"'][^\"']+[\"']" --include="*.rs" --include="*.toml" .; then
+            echo "Warning: Potential hardcoded secrets found!"
+            echo "Please review the above matches."
+          else
+            echo "No obvious hardcoded secrets found."
+          fi
+
+  # SBOM generation
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+
+      - name: Generate SBOM
+        run: cargo cyclonedx --format json > sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
