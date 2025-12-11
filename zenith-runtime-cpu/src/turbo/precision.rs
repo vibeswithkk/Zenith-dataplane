@@ -287,7 +287,7 @@ mod tests {
     
     #[test]
     fn test_bf16_conversion() {
-        let values = [0.0f32, 1.0, -1.0, 3.14159, 100.0, 0.001];
+        let values = [0.0f32, 1.0, -1.0, std::f32::consts::PI, 100.0, 0.001];
         
         for &val in &values {
             let bf16 = BFloat16::from_f32(val);
@@ -301,7 +301,7 @@ mod tests {
     
     #[test]
     fn test_fp16_conversion() {
-        let values = [0.0f32, 1.0, -1.0, 3.14159, 100.0, 0.001];
+        let values = [0.0f32, 1.0, -1.0, std::f32::consts::PI, 100.0, 0.001];
         
         for &val in &values {
             let fp16 = Float16::from_f32(val);
