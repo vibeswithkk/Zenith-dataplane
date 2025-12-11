@@ -236,6 +236,8 @@ pub struct CircuitBreakerStats {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fmt;
+    use std::error::Error;
     
     #[test]
     fn test_circuit_breaker_normal() {
@@ -282,5 +284,200 @@ mod tests {
         
         cb.reset();
         assert_eq!(cb.state(), CircuitState::Closed);
+    }
+    
+    // ========================================================================
+    // MUTATION-KILLING TESTS
+    // ========================================================================
+    
+    /// Test that on_success actually increments the total_successes counter
+    /// Kills mutation: replace on_success with ()
+    #[test]
+    fn test_on_success_increments_counter() {
+        let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
+        
+        let stats_before = cb.stats();
+        assert_eq!(stats_before.total_successes, 0);
+        
+        cb.on_success();
+        
+        let stats_after = cb.stats();
+        assert_eq!(stats_after.total_successes, 1, 
+            "on_success must increment total_successes counter");
+        
+        // Call multiple times to verify it's not just setting to 1
+        cb.on_success();
+        cb.on_success();
+        
+        let stats_final = cb.stats();
+        assert_eq!(stats_final.total_successes, 3,
+            "on_success must use fetch_add, not fetch_sub");
+    }
+    
+    /// Test the exact arithmetic of success counting in HalfOpen state
+    /// Kills mutations: + with -, + with *
+    #[test]
+    fn test_on_success_arithmetic_boundary() {
+        let cb = CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 1,
+            success_threshold: 3,
+            reset_timeout: Duration::from_millis(1),
+            ..Default::default()
+        });
+        
+        // Open the circuit
+        cb.on_failure();
+        assert_eq!(cb.state(), CircuitState::Open);
+        
+        // Wait for reset timeout
+        std::thread::sleep(Duration::from_millis(10));
+        
+        // Trigger half-open by calling is_allowed
+        assert!(cb.is_allowed());
+        assert_eq!(cb.state(), CircuitState::HalfOpen);
+        
+        // First success: count should be 1 (0 + 1, not 0 - 1 or 0 * 1)
+        cb.on_success();
+        assert_eq!(cb.state(), CircuitState::HalfOpen, 
+            "Should still be HalfOpen after 1 success (threshold is 3)");
+        
+        // Second success: count should be 2
+        cb.on_success();
+        assert_eq!(cb.state(), CircuitState::HalfOpen,
+            "Should still be HalfOpen after 2 successes");
+        
+        // Third success: count should be 3, which >= threshold, so should close
+        cb.on_success();
+        assert_eq!(cb.state(), CircuitState::Closed,
+            "Should be Closed after exactly 3 successes (success_threshold=3)");
+    }
+    
+    /// Test the exact arithmetic of failure counting
+    /// Kills mutation: >= with < in on_failure
+    #[test]
+    fn test_on_failure_arithmetic_boundary() {
+        let cb = CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 3,
+            ..Default::default()
+        });
+        
+        // First two failures should NOT open the circuit
+        cb.on_failure();
+        assert_eq!(cb.state(), CircuitState::Closed,
+            "Should be Closed after 1 failure (threshold is 3)");
+        
+        cb.on_failure();
+        assert_eq!(cb.state(), CircuitState::Closed,
+            "Should be Closed after 2 failures (threshold is 3)");
+        
+        // Third failure should open the circuit (count=3 >= threshold=3)
+        cb.on_failure();
+        assert_eq!(cb.state(), CircuitState::Open,
+            "Should be Open after exactly 3 failures (failure_threshold=3)");
+    }
+    
+    /// Custom error type for testing
+    #[derive(Debug)]
+    struct TestError(String);
+    
+    impl fmt::Display for TestError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "TestError: {}", self.0)
+        }
+    }
+    
+    impl std::error::Error for TestError {}
+    
+    /// Test that Display trait returns non-empty, meaningful messages
+    /// Kills mutation: fmt -> Ok(Default::default())
+    #[test]
+    fn test_circuit_breaker_error_display() {
+        // Test CircuitOpen variant
+        let err: CircuitBreakerError<TestError> = CircuitBreakerError::CircuitOpen;
+        let display = format!("{}", err);
+        assert!(!display.is_empty(), "Display should not return empty string");
+        assert!(display.contains("open") || display.contains("Circuit"),
+            "Display for CircuitOpen should mention 'open' or 'Circuit': got '{}'", display);
+        
+        // Test CallFailed variant
+        let inner = TestError("connection refused".to_string());
+        let err: CircuitBreakerError<TestError> = CircuitBreakerError::CallFailed(inner);
+        let display = format!("{}", err);
+        assert!(!display.is_empty(), "Display should not return empty string");
+        assert!(display.contains("connection refused"),
+            "Display for CallFailed should contain inner error message: got '{}'", display);
+    }
+    
+    /// Test that Error::source returns the underlying error for CallFailed
+    /// Kills mutation: source -> None
+    #[test]
+    fn test_circuit_breaker_error_source() {
+        // CircuitOpen has no source
+        let err: CircuitBreakerError<TestError> = CircuitBreakerError::CircuitOpen;
+        assert!(err.source().is_none(), "CircuitOpen should have no source");
+        
+        // CallFailed should return the inner error as source
+        let inner = TestError("underlying error".to_string());
+        let err: CircuitBreakerError<TestError> = CircuitBreakerError::CallFailed(inner);
+        let source = err.source();
+        assert!(source.is_some(), "CallFailed must return Some from source()");
+        
+        let source_display = format!("{}", source.unwrap());
+        assert!(source_display.contains("underlying error"),
+            "source() should return the inner error");
+    }
+    
+    /// Test that exactly success_threshold successes closes the circuit
+    /// Kills mutation: >= with < in on_success
+    #[test]
+    fn test_half_open_success_threshold_exact() {
+        let cb = CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 1,
+            success_threshold: 2,  // Exactly 2 successes needed
+            reset_timeout: Duration::from_millis(1),
+            ..Default::default()
+        });
+        
+        // Open and then go to half-open
+        cb.on_failure();
+        std::thread::sleep(Duration::from_millis(10));
+        cb.is_allowed();
+        assert_eq!(cb.state(), CircuitState::HalfOpen);
+        
+        // First success: count = 1, threshold = 2, so 1 >= 2 is false
+        cb.on_success();
+        assert_eq!(cb.state(), CircuitState::HalfOpen,
+            "With success_threshold=2, 1 success should NOT close circuit");
+        
+        // Second success: count = 2, threshold = 2, so 2 >= 2 is true
+        cb.on_success();
+        assert_eq!(cb.state(), CircuitState::Closed,
+            "With success_threshold=2, exactly 2 successes MUST close circuit");
+    }
+    
+    /// Test that stats accurately reflects all operations
+    #[test]
+    fn test_stats_accuracy() {
+        let cb = CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 5,
+            ..Default::default()
+        });
+        
+        // Perform various operations
+        let _ = cb.call(|| Ok::<i32, &str>(1));
+        let _ = cb.call(|| Ok::<i32, &str>(2));
+        let _ = cb.call(|| Err::<i32, &str>("fail1"));
+        let _ = cb.call(|| Ok::<i32, &str>(3));
+        let _ = cb.call(|| Err::<i32, &str>("fail2"));
+        
+        let stats = cb.stats();
+        
+        assert_eq!(stats.total_calls, 5, "Should have 5 total calls");
+        assert_eq!(stats.total_successes, 3, "Should have 3 successes");
+        assert_eq!(stats.total_failures, 2, "Should have 2 failures");
+        // Note: on_success resets failure_count to 0, so after the sequence:
+        // success, success, fail, success, fail -> failure_count is 1 (reset by last success before last fail)
+        assert_eq!(stats.current_failure_count, 1, "Current failure count should be 1 (reset by on_success)");
+        assert_eq!(stats.total_rejections, 0, "No rejections yet");
     }
 }

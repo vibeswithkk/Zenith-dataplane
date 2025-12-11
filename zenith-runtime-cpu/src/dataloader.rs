@@ -694,5 +694,226 @@ mod tests {
         let err: Box<dyn std::error::Error> = Box::new(DataLoaderError::Io("test".to_string()));
         assert!(err.to_string().contains("I/O error"));
     }
+    
+    // ========================================================================
+    // MUTATION-KILLING TESTS
+    // ========================================================================
+    
+    /// Test that clear_cache actually clears the cache (not a no-op)
+    /// Kills mutation: replace clear_cache with ()
+    #[test]
+    fn test_clear_cache_actually_clears() {
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+        
+        // Create a temporary parquet file
+        let schema = create_test_schema();
+        let batch = create_test_batch(&schema, vec![1, 2, 3, 4, 5]);
+        
+        let mut temp_file = NamedTempFile::with_suffix(".parquet").unwrap();
+        {
+            use parquet::arrow::ArrowWriter;
+            let mut writer = ArrowWriter::try_new(temp_file.as_file_mut(), schema.clone(), None).unwrap();
+            writer.write(&batch).unwrap();
+            writer.close().unwrap();
+        }
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        
+        // Load to populate cache
+        let result = loader.load();
+        assert!(result.is_ok(), "Should load parquet file");
+        
+        // Verify cache is populated
+        {
+            let cache = loader.cached_batches.read();
+            assert!(cache.is_some(), "Cache should be populated after load");
+        }
+        
+        // Clear the cache
+        loader.clear_cache();
+        
+        // Verify cache is now empty
+        {
+            let cache = loader.cached_batches.read();
+            assert!(cache.is_none(), 
+                "clear_cache must actually clear the cache, not be a no-op");
+        }
+    }
+    
+    /// Test loading a real parquet file through load_file match arm
+    /// Kills mutation: delete match arm FileFormat::Parquet
+    #[test]
+    fn test_load_parquet_file() {
+        use tempfile::NamedTempFile;
+        
+        let schema = create_test_schema();
+        let batch = create_test_batch(&schema, vec![10, 20, 30]);
+        
+        let mut temp_file = NamedTempFile::with_suffix(".parquet").unwrap();
+        {
+            use parquet::arrow::ArrowWriter;
+            let mut writer = ArrowWriter::try_new(temp_file.as_file_mut(), schema.clone(), None).unwrap();
+            writer.write(&batch).unwrap();
+            writer.close().unwrap();
+        }
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        let result = loader.load();
+        
+        assert!(result.is_ok(), "Must be able to load parquet files");
+        let iter = result.unwrap();
+        assert_eq!(iter.total_rows(), 3, "Should have 3 rows from parquet");
+    }
+    
+    /// Test loading a real CSV file through load_file match arm
+    /// Kills mutation: delete match arm FileFormat::Csv
+    #[test]
+    fn test_load_csv_file() {
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+        
+        let mut temp_file = NamedTempFile::with_suffix(".csv").unwrap();
+        writeln!(temp_file, "id,value").unwrap();
+        writeln!(temp_file, "1,100").unwrap();
+        writeln!(temp_file, "2,200").unwrap();
+        writeln!(temp_file, "3,300").unwrap();
+        temp_file.flush().unwrap();
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        let result = loader.load();
+        
+        assert!(result.is_ok(), "Must be able to load CSV files");
+        let iter = result.unwrap();
+        assert_eq!(iter.total_rows(), 3, "Should have 3 rows from CSV");
+    }
+    
+    /// Test loading Arrow IPC file through load_file match arm  
+    /// Kills mutation: delete match arm FileFormat::ArrowIpc
+    #[test]
+    fn test_load_arrow_ipc_file() {
+        use tempfile::NamedTempFile;
+        use arrow::ipc::writer::FileWriter;
+        
+        let schema = create_test_schema();
+        let batch = create_test_batch(&schema, vec![100, 200]);
+        
+        let temp_file = NamedTempFile::with_suffix(".arrow").unwrap();
+        {
+            let mut writer = FileWriter::try_new(temp_file.as_file(), &schema).unwrap();
+            writer.write(&batch).unwrap();
+            writer.finish().unwrap();
+        }
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        let result = loader.load();
+        
+        assert!(result.is_ok(), "Must be able to load Arrow IPC files");
+        let iter = result.unwrap();
+        assert_eq!(iter.total_rows(), 2, "Should have 2 rows from Arrow IPC");
+    }
+    
+    /// Test cache is populated and subsequent loads use cache
+    /// Kills mutations: cache size comparisons
+    #[test]
+    fn test_cache_is_populated_on_small_data() {
+        use tempfile::NamedTempFile;
+        
+        let schema = create_test_schema();
+        let batch = create_test_batch(&schema, vec![1, 2, 3]);
+        
+        let mut temp_file = NamedTempFile::with_suffix(".parquet").unwrap();
+        {
+            use parquet::arrow::ArrowWriter;
+            let mut writer = ArrowWriter::try_new(temp_file.as_file_mut(), schema.clone(), None).unwrap();
+            writer.write(&batch).unwrap();
+            writer.close().unwrap();
+        }
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        
+        // First load
+        let result1 = loader.load();
+        assert!(result1.is_ok());
+        
+        // Verify cache populated (small data < 100MB)
+        {
+            let cache = loader.cached_batches.read();
+            assert!(cache.is_some(), "Small data should be cached");
+            let batches = cache.as_ref().unwrap();
+            assert!(!batches.is_empty(), "Cached batches should not be empty");
+        }
+        
+        // Second load should use cache (test this indirectly)
+        let result2 = loader.load();
+        assert!(result2.is_ok());
+        assert_eq!(result2.unwrap().total_rows(), 3);
+    }
+    
+    /// Test FileFormat detection for all supported formats
+    /// Strengthens match arm testing
+    #[test]
+    fn test_file_format_all_variants() {
+        // Parquet variants
+        assert_eq!(FileFormat::from_extension("data.parquet"), FileFormat::Parquet);
+        assert_eq!(FileFormat::from_extension("path/to/file.pq"), FileFormat::Parquet);
+        
+        // CSV variants
+        assert_eq!(FileFormat::from_extension("data.csv"), FileFormat::Csv);
+        assert_eq!(FileFormat::from_extension("data.tsv"), FileFormat::Csv);
+        
+        // Arrow IPC variants
+        assert_eq!(FileFormat::from_extension("data.arrow"), FileFormat::ArrowIpc);
+        assert_eq!(FileFormat::from_extension("data.feather"), FileFormat::ArrowIpc);
+        
+        // JSON Lines
+        assert_eq!(FileFormat::from_extension("data.jsonl"), FileFormat::JsonLines);
+        assert_eq!(FileFormat::from_extension("data.ndjson"), FileFormat::JsonLines);
+        
+        // Unknown
+        assert_eq!(FileFormat::from_extension("data.txt"), FileFormat::Unknown);
+        assert_eq!(FileFormat::from_extension("no_extension"), FileFormat::Unknown);
+    }
+    
+    /// Test that load returns error for unsupported format
+    /// Verifies the _ match arm in load_file
+    #[test]
+    fn test_load_file_unsupported_returns_error() {
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+        
+        // Create a file with unknown extension
+        let mut temp_file = NamedTempFile::with_suffix(".xyz").unwrap();
+        writeln!(temp_file, "some data").unwrap();
+        temp_file.flush().unwrap();
+        
+        let loader = DataLoader::with_defaults(temp_file.path().to_str().unwrap());
+        let result = loader.load();
+        
+        assert!(result.is_err(), "Unknown format should return error");
+        match result {
+            Err(DataLoaderError::UnsupportedFormat(_)) => {}
+            _ => panic!("Expected UnsupportedFormat error"),
+        }
+    }
+    
+    /// Test config() returns the correct configuration
+    #[test] 
+    fn test_config_returns_correct_values() {
+        let config = LoaderConfig {
+            batch_size: 512,
+            prefetch_count: 2,
+            num_workers: 8,
+            memory_map: false,
+            io_buffer_size: 4 * 1024 * 1024,
+        };
+        let loader = DataLoader::new(DataSource::File("test.parquet".to_string()), config);
+        
+        let c = loader.config();
+        assert_eq!(c.batch_size, 512);
+        assert_eq!(c.prefetch_count, 2);
+        assert_eq!(c.num_workers, 8);
+        assert!(!c.memory_map);
+        assert_eq!(c.io_buffer_size, 4 * 1024 * 1024);
+    }
 }
-

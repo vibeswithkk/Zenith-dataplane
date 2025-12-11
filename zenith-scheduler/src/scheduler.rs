@@ -767,5 +767,547 @@ mod tests {
         assert_eq!(decisions.len(), 0);  // Not scheduled
         assert_eq!(scheduler.queue_size(), 1);  // Still in queue
     }
+    
+    // ========================================================================
+    // MUTATION-KILLING TESTS
+    // ========================================================================
+    
+    /// Test that jobs_with_state returns non-empty vec for matching jobs
+    /// Kills mutations: return vec![], == with !=
+    #[test]
+    fn test_jobs_with_state_filtering() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig::default());
+        
+        // Submit multiple jobs
+        for i in 0..3 {
+            let job = Job::new(JobDescriptor {
+                name: format!("job-{}", i),
+                user_id: "user1".to_string(),
+                project_id: "project1".to_string(),
+                command: "echo".to_string(),
+                arguments: vec![],
+                environment: HashMap::new(),
+                working_directory: "/app".to_string(),
+                resources: crate::job::ResourceRequirements {
+                    gpu_count: 1,
+                    ..Default::default()
+                },
+                locality: Default::default(),
+                policy: Default::default(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            });
+            scheduler.submit(job).unwrap();
+        }
+        
+        // All jobs should be Queued
+        let queued_jobs = scheduler.jobs_with_state(JobState::Queued);
+        assert_eq!(queued_jobs.len(), 3, "Should have 3 queued jobs");
+        
+        // No jobs should be Running
+        let running_jobs = scheduler.jobs_with_state(JobState::Running);
+        assert_eq!(running_jobs.len(), 0, "Should have 0 running jobs");
+        
+        // Schedule all jobs
+        scheduler.schedule_cycle();
+        
+        // Now jobs should be Scheduled, not Queued
+        let queued_after = scheduler.jobs_with_state(JobState::Queued);
+        assert_eq!(queued_after.len(), 0, "Should have 0 queued jobs after scheduling");
+        
+        let scheduled_jobs = scheduler.jobs_with_state(JobState::Scheduled);
+        assert_eq!(scheduled_jobs.len(), 3, "Should have 3 scheduled jobs");
+        
+        // Verify filtering correctly uses == not !=
+        for job in &scheduled_jobs {
+            assert_eq!(job.state, JobState::Scheduled, 
+                "jobs_with_state must filter correctly using ==");
+        }
+    }
+    
+    /// Test that config() returns a reference to the actual config
+    /// Kills mutation: config -> Box::leak(Box::new(Default::default()))
+    #[test]
+    fn test_config_returns_actual_config() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        
+        let custom_config = SchedulerConfig {
+            max_schedule_batch: 42,  // Non-default value
+            backfill_enabled: false,
+            topology_aware: false,
+            prefer_same_node: false,
+            job_timeout_secs: 12345,
+            heartbeat_timeout_secs: 99,
+        };
+        
+        let scheduler = Scheduler::new(registry, custom_config);
+        
+        let config = scheduler.config();
+        
+        // Verify it returns the actual config, not a default
+        assert_eq!(config.max_schedule_batch, 42, 
+            "config() must return actual config, not default");
+        assert!(!config.backfill_enabled,
+            "config() must return actual config, not default");
+        assert!(!config.topology_aware,
+            "config() must return actual config, not default");
+        assert!(!config.prefer_same_node,
+            "config() must return actual config, not default");
+        assert_eq!(config.job_timeout_secs, 12345,
+            "config() must return actual config, not default");
+        assert_eq!(config.heartbeat_timeout_secs, 99,
+            "config() must return actual config, not default");
+    }
+    
+    /// Test cancelling a running job (covers the Running match arm)
+    /// Kills mutation: delete match arm JobState::Running
+    #[test]
+    fn test_cancel_running_job() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig::default());
+        
+        let job = Job::new(JobDescriptor {
+            name: "running-cancel-test".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "sleep".to_string(),
+            arguments: vec!["1000".to_string()],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        let job_id = scheduler.submit(job).unwrap();
+        
+        // Schedule and start the job
+        scheduler.schedule_cycle();
+        scheduler.mark_job_started(&job_id).unwrap();
+        
+        // Verify job is Running
+        let job = scheduler.get_job(&job_id).unwrap();
+        assert_eq!(job.state, JobState::Running, "Job should be running");
+        
+        // Cancel the running job
+        let result = scheduler.cancel(&job_id, "User cancelled running job");
+        assert!(result.is_ok(), "Should be able to cancel running job");
+        
+        // Verify job is now Cancelled
+        let job = scheduler.get_job(&job_id).unwrap();
+        assert_eq!(job.state, JobState::Cancelled, 
+            "Running job must transition to Cancelled");
+    }
+    
+    /// Test gang_schedule with insufficient total GPUs
+    /// Kills mutations: < comparisons, remaining checks
+    #[test]
+    fn test_gang_schedule_insufficient_gpus() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        // Only 3 GPUs available across all nodes
+        registry.register(create_test_node("node-1", 2)).unwrap();
+        registry.register(create_test_node("node-2", 1)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig {
+            prefer_same_node: false,  // Force multi-node scheduling
+            ..Default::default()
+        });
+        
+        // Job requiring 5 GPUs (more than available)
+        let job = Job::new(JobDescriptor {
+            name: "gang-insufficient".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "python".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 5,  // Need 5, only have 3
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: crate::job::SchedulingPolicy {
+                gang_schedule: true,
+                ..Default::default()
+            },
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        scheduler.submit(job).unwrap();
+        
+        // Should not schedule - insufficient GPUs
+        let decisions = scheduler.schedule_cycle();
+        assert_eq!(decisions.len(), 0, 
+            "Should not schedule when total_available < required_gpus");
+    }
+    
+    /// Test gang_schedule with exact GPUs required
+    /// Kills mutations: remaining > 0 check
+    #[test]
+    fn test_gang_schedule_exact_gpus() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 2)).unwrap();
+        registry.register(create_test_node("node-2", 2)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig {
+            prefer_same_node: false,  // Force multi-node to test remaining logic
+            ..Default::default()
+        });
+        
+        // Job requiring exactly 4 GPUs (sum of both nodes)
+        let job = Job::new(JobDescriptor {
+            name: "gang-exact".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "python".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 4,  // Exactly 2+2
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: crate::job::SchedulingPolicy {
+                gang_schedule: true,
+                ..Default::default()
+            },
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        scheduler.submit(job).unwrap();
+        
+        // Should schedule successfully with exactly the right amount
+        let decisions = scheduler.schedule_cycle();
+        assert_eq!(decisions.len(), 1, 
+            "Should schedule when total_available == required_gpus");
+        
+        let total_gpus: usize = decisions[0].allocations.values()
+            .map(|v| v.len())
+            .sum();
+        assert_eq!(total_gpus, 4, "Should allocate exactly 4 GPUs");
+    }
+    
+    /// Test spread_schedule returns Some (not None)
+    /// Kills mutation: spread_schedule -> None
+    #[test]
+    fn test_spread_schedule_returns_decision() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig::default());
+        
+        // Non-gang job (uses spread_schedule internally)
+        let job = Job::new(JobDescriptor {
+            name: "spread-test".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "python".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 2,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: crate::job::SchedulingPolicy {
+                gang_schedule: false,  // Use spread scheduling
+                ..Default::default()
+            },
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        scheduler.submit(job).unwrap();
+        
+        let decisions = scheduler.schedule_cycle();
+        
+        // spread_schedule should return Some, not None
+        assert_eq!(decisions.len(), 1, 
+            "spread_schedule must return Some when resources available");
+    }
+    
+    // ========================================================================
+    // CLEANUP_ZOMBIE_JOBS TESTS
+    // ========================================================================
+    
+    /// Test cleanup returns 0 when no running jobs
+    /// Kills mutations: return 0, return 1
+    #[test]
+    fn test_cleanup_zombie_jobs_no_running_jobs() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig {
+            job_timeout_secs: 10,
+            ..Default::default()
+        });
+        
+        // Submit a job but DON'T start it (keep it in Queued state)
+        let job = Job::new(JobDescriptor {
+            name: "not-running".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "echo".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        scheduler.submit(job).unwrap();
+        
+        // Schedule but don't start
+        scheduler.schedule_cycle();
+        
+        // No running jobs, so cleanup should return 0
+        let cleaned = scheduler.cleanup_zombie_jobs();
+        assert_eq!(cleaned, 0, 
+            "cleanup_zombie_jobs must return 0 when no Running jobs");
+    }
+    
+    /// Test cleanup with timed out job
+    /// Kills mutations: job_timeout_secs > 0, elapsed > timeout, += with -=
+    #[test]
+    fn test_cleanup_zombie_jobs_timeout() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig {
+            job_timeout_secs: 1,  // 1 second timeout
+            ..Default::default()
+        });
+        
+        // Submit and start a job
+        let job = Job::new(JobDescriptor {
+            name: "will-timeout".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "sleep".to_string(),
+            arguments: vec!["1000".to_string()],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        let job_id = scheduler.submit(job).unwrap();
+        scheduler.schedule_cycle();
+        scheduler.mark_job_started(&job_id).unwrap();
+        
+        // Verify job is Running
+        let job = scheduler.get_job(&job_id).unwrap();
+        assert_eq!(job.state, JobState::Running);
+        
+        // Manually set start_time to past (2 seconds ago) to trigger timeout
+        {
+            let mut jobs = scheduler.jobs.write();
+            if let Some(job) = jobs.get_mut(&job_id) {
+                job.start_time = Some(chrono::Utc::now() - chrono::Duration::seconds(5));
+            }
+        }
+        
+        // Now cleanup should find and clean the timed out job
+        let cleaned = scheduler.cleanup_zombie_jobs();
+        assert_eq!(cleaned, 1, 
+            "cleanup_zombie_jobs must return 1 when 1 job timed out");
+        
+        // Verify job is now in Timeout state
+        let job = scheduler.get_job(&job_id).unwrap();
+        assert_eq!(job.state, JobState::Timeout,
+            "Job must transition to Timeout state");
+    }
+    
+    /// Test cleanup with unhealthy node
+    /// Kills mutations: !is_node_healthy, any_dead check
+    #[test]
+    fn test_cleanup_zombie_jobs_unhealthy_node() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry.clone(), SchedulerConfig {
+            job_timeout_secs: 0,  // Disable timeout to test node health only
+            ..Default::default()
+        });
+        
+        // Submit and start a job
+        let job = Job::new(JobDescriptor {
+            name: "on-dead-node".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "python".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        
+        let job_id = scheduler.submit(job).unwrap();
+        scheduler.schedule_cycle();
+        scheduler.mark_job_started(&job_id).unwrap();
+        
+        // Deregister the node (making it unhealthy/unreachable)
+        registry.deregister("node-1").unwrap();
+        
+        // Cleanup should detect the unhealthy node
+        let cleaned = scheduler.cleanup_zombie_jobs();
+        assert_eq!(cleaned, 1,
+            "cleanup_zombie_jobs must return 1 when node is unhealthy");
+        
+        // Verify job is now in Failed state
+        let job = scheduler.get_job(&job_id).unwrap();
+        assert_eq!(job.state, JobState::Failed,
+            "Job must transition to Failed when node is unhealthy");
+    }
+    
+    /// Test cleanup returns correct count for multiple zombies
+    /// Kills mutations: cleaned += 1
+    #[test]
+    fn test_cleanup_zombie_jobs_multiple() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry.clone(), SchedulerConfig {
+            job_timeout_secs: 1,
+            ..Default::default()
+        });
+        
+        // Submit and start multiple jobs
+        let mut job_ids = vec![];
+        for i in 0..3 {
+            let job = Job::new(JobDescriptor {
+                name: format!("zombie-{}", i),
+                user_id: "user1".to_string(),
+                project_id: "project1".to_string(),
+                command: "sleep".to_string(),
+                arguments: vec![],
+                environment: HashMap::new(),
+                working_directory: "/app".to_string(),
+                resources: crate::job::ResourceRequirements {
+                    gpu_count: 1,
+                    ..Default::default()
+                },
+                locality: Default::default(),
+                policy: Default::default(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            });
+            job_ids.push(scheduler.submit(job).unwrap());
+        }
+        
+        // Schedule and start all
+        scheduler.schedule_cycle();
+        for job_id in &job_ids {
+            scheduler.mark_job_started(job_id).unwrap();
+        }
+        
+        // Set all jobs to past start_time
+        {
+            let mut jobs = scheduler.jobs.write();
+            for job_id in &job_ids {
+                if let Some(job) = jobs.get_mut(job_id) {
+                    job.start_time = Some(chrono::Utc::now() - chrono::Duration::seconds(10));
+                }
+            }
+        }
+        
+        // Cleanup should return 3
+        let cleaned = scheduler.cleanup_zombie_jobs();
+        assert_eq!(cleaned, 3,
+            "cleanup_zombie_jobs must return correct count (3 zombies)");
+    }
+    
+    /// Test cleanup skips non-running jobs
+    /// Kills mutation: state != Running becomes state == Running
+    #[test]
+    fn test_cleanup_zombie_jobs_skips_non_running() {
+        let registry = Arc::new(NodeRegistry::new(60));
+        registry.register(create_test_node("node-1", 4)).unwrap();
+        
+        let scheduler = Scheduler::new(registry, SchedulerConfig {
+            job_timeout_secs: 1,
+            ..Default::default()
+        });
+        
+        // Submit jobs in different states
+        // Job 1: Queued (not Running)
+        let job1 = Job::new(JobDescriptor {
+            name: "queued-job".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "echo".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        scheduler.submit(job1).unwrap();
+        
+        // Job 2: Scheduled (not Running)
+        let job2 = Job::new(JobDescriptor {
+            name: "scheduled-job".to_string(),
+            user_id: "user1".to_string(),
+            project_id: "project1".to_string(),
+            command: "echo".to_string(),
+            arguments: vec![],
+            environment: HashMap::new(),
+            working_directory: "/app".to_string(),
+            resources: crate::job::ResourceRequirements {
+                gpu_count: 1,
+                ..Default::default()
+            },
+            locality: Default::default(),
+            policy: Default::default(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        });
+        scheduler.submit(job2).unwrap();
+        scheduler.schedule_cycle();
+        
+        // No Running jobs, cleanup should return 0
+        let cleaned = scheduler.cleanup_zombie_jobs();
+        assert_eq!(cleaned, 0,
+            "cleanup_zombie_jobs must skip non-Running jobs");
+    }
 }
-
