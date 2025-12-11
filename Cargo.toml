@@ -58,7 +58,7 @@ prost-types = "0.13"
 arrow = { version = "53.0", features = ["pyarrow"] }
 arrow-array = "53.0"
 arrow-buffer = "53.0"
-arrow-schema = "53.0"
+arrow-schema = "57.1"
 arrow-ipc = "53.0"
 
 # Error handling
