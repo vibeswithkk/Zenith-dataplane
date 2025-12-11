@@ -51,7 +51,7 @@ serde_yaml = "0.9"
 
 # gRPC & Protobuf
 tonic = "0.12"
-prost = "0.13"
+prost = "0.14"
 prost-types = "0.13"
 
 # Apache Arrow
