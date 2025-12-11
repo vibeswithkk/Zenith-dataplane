@@ -1,31 +1,19 @@
 // WasmHost implementation
 use wasmtime::{Engine, Linker, Module, Store, Config};
 use wasmtime_wasi::WasiCtxBuilder;
-use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::p1::{self, WasiP1Ctx};
 use crate::error::Result;
 use std::sync::{Arc, Mutex};
 
-/// WASI state container for wasmtime v27+
-/// Uses WasiP1Ctx for preview1 (WASI snapshot1) compatibility
-pub struct WasiState {
-    wasi: WasiP1Ctx,
-}
+/// Type alias for WASI state in wasmtime v39+
+/// WasiP1Ctx is now used directly as the store state
+pub type WasiState = WasiP1Ctx;
 
-impl Default for WasiState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl WasiState {
-    pub fn new() -> Self {
-        let wasi_ctx = WasiCtxBuilder::new()
-            .inherit_stdio()
-            .build_p1();
-        Self {
-            wasi: wasi_ctx,
-        }
-    }
+/// Helper function to create a new WASI context
+pub fn new_wasi_ctx() -> WasiP1Ctx {
+    WasiCtxBuilder::new()
+        .inherit_stdio()
+        .build_p1()
 }
 
 pub struct WasmPlugin {
@@ -45,8 +33,8 @@ impl WasmHost {
         let engine = Engine::new(&config)?;
         let mut linker = Linker::new(&engine);
         
-        // wasmtime v27+ uses preview1 compatibility layer
-        wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |s: &mut WasiState| &mut s.wasi)?;
+        // wasmtime v39+ uses p1 module for WASIp1 (preview1) compatibility
+        p1::add_to_linker_sync(&mut linker, |s: &mut WasiState| s)?;
 
         Ok(Self {
             engine,
@@ -54,8 +42,9 @@ impl WasmHost {
         })
     }
 
+
     pub fn load_plugin(&self, wasm_bytes: &[u8]) -> Result<WasmPlugin> {
-        let wasi_state = WasiState::new();
+        let wasi_state = new_wasi_ctx();
         
         let mut store = Store::new(&self.engine, wasi_state);
         let module = Module::new(&self.engine, wasm_bytes)?;
