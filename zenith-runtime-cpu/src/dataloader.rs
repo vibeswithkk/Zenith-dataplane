@@ -87,6 +87,40 @@ impl FileFormat {
     }
 }
 
+/// Detect file format from magic bytes in memory buffer
+fn detect_format_from_bytes(data: &[u8]) -> FileFormat {
+    if data.len() < 4 {
+        return FileFormat::Unknown;
+    }
+    
+    // Parquet magic bytes: "PAR1" at start
+    if data.starts_with(b"PAR1") {
+        return FileFormat::Parquet;
+    }
+    
+    // Arrow IPC magic bytes: "ARROW1" 
+    if data.len() >= 6 && data.starts_with(b"ARROW1") {
+        return FileFormat::ArrowIpc;
+    }
+    
+    // Check for Arrow IPC with continuation (0xFFFFFFFF followed by schema)
+    if data.len() >= 8 && &data[0..4] == &[0xFF, 0xFF, 0xFF, 0xFF] {
+        return FileFormat::ArrowIpc;
+    }
+    
+    // CSV/TSV: Check if first line looks like text with delimiters
+    // Simple heuristic: if it starts with printable ASCII and contains comma/tab
+    if data[0].is_ascii() && !data[0].is_ascii_control() {
+        let first_line_end = data.iter().position(|&b| b == b'\n').unwrap_or(data.len().min(1024));
+        let first_line = &data[..first_line_end];
+        if first_line.contains(&b',') || first_line.contains(&b'\t') {
+            return FileFormat::Csv;
+        }
+    }
+    
+    FileFormat::Unknown
+}
+
 /// High-performance batch iterator
 pub struct BatchIterator {
     schema: Arc<Schema>,
@@ -302,9 +336,81 @@ impl DataLoader {
         Ok((schema, all_batches))
     }
     
-    fn load_memory(&self, _data: &[u8]) -> Result<(Arc<Schema>, Vec<RecordBatch>), DataLoaderError> {
-        // TODO: Implement memory loading
-        Err(DataLoaderError::UnsupportedFormat("Memory loading not yet implemented".to_string()))
+    fn load_memory(&self, data: &[u8]) -> Result<(Arc<Schema>, Vec<RecordBatch>), DataLoaderError> {
+        if data.is_empty() {
+            return Err(DataLoaderError::Empty("Empty memory buffer".to_string()));
+        }
+        
+        // Detect format from magic bytes
+        let format = detect_format_from_bytes(data);
+        
+        match format {
+            FileFormat::Parquet => self.load_memory_parquet(data),
+            FileFormat::ArrowIpc => self.load_memory_arrow_ipc(data),
+            FileFormat::Csv => self.load_memory_csv(data),
+            _ => Err(DataLoaderError::UnsupportedFormat(
+                "Cannot detect format from memory buffer. \
+                 Supported formats: Parquet, Arrow IPC, CSV".to_string()
+            )),
+        }
+    }
+    
+    fn load_memory_parquet(&self, data: &[u8]) -> Result<(Arc<Schema>, Vec<RecordBatch>), DataLoaderError> {
+        use arrow::array::RecordBatchReader;
+        use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+        
+        let reader = ParquetRecordBatchReaderBuilder::try_new(bytes::Bytes::from(data.to_vec()))
+            .map_err(|e| DataLoaderError::Parse(e.to_string()))?
+            .with_batch_size(self.config.batch_size)
+            .build()
+            .map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        let schema = reader.schema();
+        let batches: Result<Vec<_>, _> = reader.collect();
+        let batches = batches.map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        Ok((schema, batches))
+    }
+    
+    fn load_memory_arrow_ipc(&self, data: &[u8]) -> Result<(Arc<Schema>, Vec<RecordBatch>), DataLoaderError> {
+        use arrow::ipc::reader::FileReader;
+        use std::io::Cursor;
+        
+        let cursor = Cursor::new(data);
+        let reader = FileReader::try_new(cursor, None)
+            .map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        let schema = reader.schema();
+        let batches: Result<Vec<_>, _> = reader.collect();
+        let batches = batches.map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        Ok((schema, batches))
+    }
+    
+    fn load_memory_csv(&self, data: &[u8]) -> Result<(Arc<Schema>, Vec<RecordBatch>), DataLoaderError> {
+        use arrow::csv::reader::Format;
+        use arrow::csv::ReaderBuilder;
+        use std::io::Cursor;
+        
+        // Infer schema
+        let cursor = Cursor::new(data);
+        let format = Format::default().with_header(true);
+        let (schema, _) = format.infer_schema(cursor, Some(100))
+            .map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        // Read data
+        let cursor = Cursor::new(data);
+        let reader = ReaderBuilder::new(Arc::new(schema.clone()))
+            .with_format(format)
+            .with_batch_size(self.config.batch_size)
+            .build(cursor)
+            .map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        let schema = Arc::new(schema);
+        let batches: Result<Vec<_>, _> = reader.collect();
+        let batches = batches.map_err(|e| DataLoaderError::Parse(e.to_string()))?;
+        
+        Ok((schema, batches))
     }
     
     /// Get loader configuration

@@ -12,6 +12,7 @@ default = ["io_uring"]
 io_uring = ["tokio-uring"]
 onnx = ["ort"]  # ONNX Runtime integration (FREE!)
 numa_cpp = []   # Native C++ NUMA backend with libnuma
+aws_s3 = ["aws-sdk-s3", "aws-config"]  # AWS S3 integration
 dpdk = []  # Future: DPDK integration
 rdma = []  # Future: RDMA integration
 
@@ -61,6 +62,10 @@ ort = { version = "2.0.0-rc.10", optional = true }
 # Data loading
 arrow = { version = "57", features = ["csv", "ipc"] }
 parquet = { version = "57.1", features = ["arrow"] }
+
+# AWS S3 (optional)
+aws-sdk-s3 = { version = "1.64", optional = true }
+aws-config = { version = "1.6", optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
