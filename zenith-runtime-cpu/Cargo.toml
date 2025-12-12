@@ -11,8 +11,13 @@ description = "Ultra-low-latency CPU runtime with NUMA awareness, io_uring, and 
 default = ["io_uring"]
 io_uring = ["tokio-uring"]
 onnx = ["ort"]  # ONNX Runtime integration (FREE!)
+numa_cpp = []   # Native C++ NUMA backend with libnuma
 dpdk = []  # Future: DPDK integration
 rdma = []  # Future: RDMA integration
+
+[build-dependencies]
+cmake = "0.1"
+cc = "1.0"
 
 [dependencies]
 # Workspace dependencies

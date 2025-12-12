@@ -70,6 +70,10 @@ pub mod thread;
 pub mod turbo;
 pub mod uring;
 
+// C++ NUMA backend FFI (requires libnuma)
+#[cfg(feature = "numa_cpp")]
+pub mod numa_ffi;
+
 // Re-exports
 pub use config::EngineConfig;
 pub use engine::CpuEngine;
