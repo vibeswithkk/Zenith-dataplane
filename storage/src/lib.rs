@@ -2,11 +2,12 @@
 /// Provides persistent event storage using embedded database
 use sled::{Db, Tree};
 use serde::{Serialize, Deserialize};
+use bincode::{Encode, Decode};
 use anyhow::Result;
 use std::path::Path;
 
 /// Event storage record
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct StoredEvent {
     pub source_id: u32,
     pub seq_no: u64,
@@ -32,7 +33,8 @@ impl StorageEngine {
     /// Store an event
     pub fn store_event(&self, event: StoredEvent) -> Result<()> {
         let key = Self::make_key(event.source_id, event.seq_no);
-        let value = bincode::serialize(&event)?;
+        let config = bincode::config::standard();
+        let value = bincode::encode_to_vec(&event, config)?;
         self.events.insert(key, value)?;
         Ok(())
     }
@@ -42,7 +44,8 @@ impl StorageEngine {
         let key = Self::make_key(source_id, seq_no);
         match self.events.get(key)? {
             Some(data) => {
-                let event = bincode::deserialize(&data)?;
+                let config = bincode::config::standard();
+                let (event, _): (StoredEvent, _) = bincode::decode_from_slice(&data, config)?;
                 Ok(Some(event))
             }
             None => Ok(None),
@@ -53,10 +56,11 @@ impl StorageEngine {
     pub fn get_source_events(&self, source_id: u32) -> Result<Vec<StoredEvent>> {
         let prefix = source_id.to_be_bytes();
         let mut events = Vec::new();
+        let config = bincode::config::standard();
         
         for item in self.events.scan_prefix(prefix) {
             let (_key, value) = item?;
-            let event: StoredEvent = bincode::deserialize(&value)?;
+            let (event, _): (StoredEvent, _) = bincode::decode_from_slice(&value, config)?;
             events.push(event);
         }
         
