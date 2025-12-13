@@ -39,7 +39,7 @@ Quick Start
 For more details, see: https://github.com/yourusername/zenith
 """
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 __author__ = "Wahyu Ardiansyah"
 
 # ============================================================================
@@ -57,7 +57,7 @@ except ImportError:
 
 # Import Python implementations
 from zenith.engine import Engine as PythonEngine
-from zenith.loader import DataLoader
+from zenith.loader import DataLoader, ZenithBatch, auto_device, cuda_available
 
 # Use native if available, otherwise fallback to Python
 if _NATIVE_AVAILABLE:
@@ -159,6 +159,11 @@ __all__ = [
     # Core
     "Engine",
     "DataLoader",
+    "ZenithBatch",
+    
+    # Device utilities
+    "auto_device",
+    "cuda_available",
     
     # Convenience functions
     "load",
