@@ -161,15 +161,26 @@ class DataLoader:
         return device
     
     def _ensure_engine(self):
-        """Lazy initialization of the Zenith engine."""
-        if self._engine is None:
-            from zenith.engine import Engine
-            self._engine = Engine()
+        """Load data - pure Python implementation."""
+        if self._data is None:
+            import pyarrow.parquet as pq
+            import pyarrow.csv as pa_csv
             
-            if self.preprocessing_plugin:
-                self._engine.load_plugin(self.preprocessing_plugin)
+            source_str = str(self.source)
             
-            self._data = self._engine.load(self.source)
+            if source_str.endswith('.parquet'):
+                self._data = pq.read_table(self.source)
+            elif source_str.endswith('.csv'):
+                self._data = pa_csv.read_csv(self.source)
+            elif source_str.endswith('.arrow') or source_str.endswith('.feather'):
+                import pyarrow.feather as feather
+                self._data = feather.read_table(self.source)
+            else:
+                # Try parquet as default
+                try:
+                    self._data = pq.read_table(self.source)
+                except Exception:
+                    raise ValueError(f"Unsupported file format: {source_str}")
     
     def __iter__(self) -> Iterator[ZenithBatch]:
         """Iterate over batches."""
