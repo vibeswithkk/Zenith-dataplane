@@ -2,6 +2,11 @@
 name = "zenith-core"
 version = "0.3.0"
 edition = "2021"
+license = "Apache-2.0"
+description = "High-performance data processing core for ML training pipelines"
+repository = "https://github.com/vibeswithkk/Zenith-dataplane"
+keywords = ["machine-learning", "data-loading", "arrow", "pytorch", "training"]
+categories = ["science", "asynchronous"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
