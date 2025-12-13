@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "zenith-ai"
-version = "0.3.0"
+version = "0.3.1"
 description = "High-Performance Data Infrastructure for Machine Learning - Native Rust Performance"
 readme = "README.md"
 license = { text = "Apache-2.0" }
